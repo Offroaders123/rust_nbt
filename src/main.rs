@@ -3,7 +3,7 @@
 use std::fs::read;
 
 fn main() {
-    let file: &str = "../NBTify/test/nbt/hello_world.nbt";
+    let file: &str = "./test/hello_world.nbt";
     println!("{}",file);
 
     let data: Vec<u8> = read(file).unwrap();
