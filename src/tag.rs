@@ -11,7 +11,7 @@ pub enum Tag {
   Double(DoubleTag),
   ByteArray(ByteArrayTag),
   String(StringTag),
-  List(ListTag<Tag>),
+  List(ListTag),
   Compound(CompoundTag),
   IntArray(IntArrayTag),
   LongArray(LongArrayTag)
@@ -25,7 +25,7 @@ pub type FloatTag = f32;
 pub type DoubleTag = f64;
 pub type ByteArrayTag = Vec<i8>;
 pub type StringTag = String;
-pub type ListTag<T/*: Tag*/> = Vec<T>;
+pub type ListTag = Vec<Tag>;
 pub type CompoundTag = HashMap<String, Tag>;
 pub type IntArrayTag = Vec<i32>;
 pub type LongArrayTag = Vec<i64>;
