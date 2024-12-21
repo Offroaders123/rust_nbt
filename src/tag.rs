@@ -3,18 +3,18 @@ use std::collections::HashMap;
 #[repr(u8)]
 #[derive(Debug)]
 pub enum Tag {
-  Byte(ByteTag) = 1,
-  Short(ShortTag),
-  Int(IntTag),
-  Long(LongTag),
-  Float(FloatTag),
-  Double(DoubleTag),
-  ByteArray(ByteArrayTag),
-  String(StringTag),
-  List(ListTag),
-  Compound(CompoundTag),
-  IntArray(IntArrayTag),
-  LongArray(LongArrayTag)
+    Byte(ByteTag) = 1,
+    Short(ShortTag),
+    Int(IntTag),
+    Long(LongTag),
+    Float(FloatTag),
+    Double(DoubleTag),
+    ByteArray(ByteArrayTag),
+    String(StringTag),
+    List(ListTag),
+    Compound(CompoundTag),
+    IntArray(IntArrayTag),
+    LongArray(LongArrayTag),
 }
 
 pub type ByteTag = i8;
