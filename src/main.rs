@@ -1,7 +1,7 @@
 use std::fs;
 mod tag;
 // use crate::tag::{ Tag, IntTag };
-use crate::tag::Tag;
+use crate::tag::*;
 
 fn main() {
     let file: &str = "./test/hello_world.nbt";
@@ -13,6 +13,9 @@ fn main() {
     let haha: Tag = Tag::Byte(25);
     println!("{:?}", haha);
 
-    // let haha2: IntTag = Tag::Int(25);
-    // println!("{:?}",haha2);
+    let hahaha: IntTag = 25;
+    println!("{:?}", hahaha);
+
+    let hahahaha: IntTag = Tag::Int(25);
+    println!("{:?}", hahahaha);
 }
