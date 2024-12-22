@@ -1,5 +1,4 @@
 use std::fs;
-mod tag;
 
 fn main() {
     let file: &str = "./test/hello_world.nbt";
