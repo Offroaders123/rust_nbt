@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::fs;
 use std::io::{self, Cursor, Read};
 
 /// Represents an NBT tag type.
@@ -102,7 +101,7 @@ fn read_tag<R: Read>(reader: &mut R, tag_id: u8) -> io::Result<Tag> {
 }
 
 /// Reads an NBT file from a byte vector and returns its root compound tag.
-fn read_nbt_file(data: Vec<u8>) -> io::Result<Tag> {
+pub fn read_nbt_file(data: Vec<u8>) -> io::Result<Tag> {
     let mut cursor = Cursor::new(data);
     let root_tag_id = read_u8(&mut cursor)?;
     let name_length = read_u16(&mut cursor)? as usize;
@@ -155,12 +154,4 @@ fn read_f64<R: Read>(reader: &mut R) -> io::Result<f64> {
     let mut buffer = [0; 8];
     reader.read_exact(&mut buffer)?;
     Ok(f64::from_be_bytes(buffer))
-}
-
-fn main() -> io::Result<()> {
-    // Example usage: Pass an NBT file's binary contents as a Vec<u8>
-    let nbt_bytes = fs::read("example.nbt")?;
-    let nbt_data = read_nbt_file(nbt_bytes)?;
-    println!("{:#?}", nbt_data);
-    Ok(())
 }
