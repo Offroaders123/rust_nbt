@@ -2,6 +2,17 @@ use crate::tag::Tag;
 use std::collections::HashMap;
 use std::io::{Cursor, Error, ErrorKind, Read, Result};
 
+/// Reads an NBT file from a byte vector and returns its root compound tag.
+pub fn read(data: Vec<u8>) -> Result<Tag> {
+    let mut cursor = Cursor::new(data);
+    let root_tag_id = read_u8(&mut cursor)?;
+    let name_length = read_u16(&mut cursor)? as usize;
+    let mut name_buffer = vec![0; name_length];
+    cursor.read_exact(&mut name_buffer)?;
+    let _root_name = String::from_utf8(name_buffer).unwrap();
+    read_tag(&mut cursor, root_tag_id)
+}
+
 /// Reads a single NBT tag from the given reader.
 fn read_tag<R: Read>(reader: &mut R, tag_id: u8) -> Result<Tag> {
     match tag_id {
@@ -67,17 +78,6 @@ fn read_tag<R: Read>(reader: &mut R, tag_id: u8) -> Result<Tag> {
         }
         _ => Err(Error::new(ErrorKind::InvalidData, "Unknown tag ID")),
     }
-}
-
-/// Reads an NBT file from a byte vector and returns its root compound tag.
-pub fn read_nbt_file(data: Vec<u8>) -> Result<Tag> {
-    let mut cursor = Cursor::new(data);
-    let root_tag_id = read_u8(&mut cursor)?;
-    let name_length = read_u16(&mut cursor)? as usize;
-    let mut name_buffer = vec![0; name_length];
-    cursor.read_exact(&mut name_buffer)?;
-    let _root_name = String::from_utf8(name_buffer).unwrap();
-    read_tag(&mut cursor, root_tag_id)
 }
 
 /// Helper functions to read various data types from a reader.

@@ -1,4 +1,4 @@
-use rust_nbt::{read_nbt_file, ListTag, Tag};
+use rust_nbt::{read, ListTag, Tag};
 use std::fs;
 use std::io::Result;
 
@@ -13,7 +13,7 @@ fn main() -> Result<()> {
     println!("{:?}", list);
 
     // Example usage: Pass an NBT file's binary contents as a Vec<u8>
-    let nbt_data: Tag = read_nbt_file(nbt_bytes)?;
+    let nbt_data: Tag = read(nbt_bytes)?;
     println!("{:#?}", nbt_data);
     Ok(())
 }
