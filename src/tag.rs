@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::io::{self, Cursor, Read};
+use std::io::{Cursor, Error, ErrorKind, Read, Result};
 
 /// Represents an NBT tag type.
 #[repr(u8)]
@@ -34,7 +34,7 @@ pub type IntArrayTag = Vec<i32>;
 pub type LongArrayTag = Vec<i64>;
 
 /// Reads a single NBT tag from the given reader.
-fn read_tag<R: Read>(reader: &mut R, tag_id: u8) -> io::Result<Tag> {
+fn read_tag<R: Read>(reader: &mut R, tag_id: u8) -> Result<Tag> {
     match tag_id {
         0 => Ok(Tag::End),
         1 => Ok(Tag::Byte(read_i8(reader)?)),
@@ -96,12 +96,12 @@ fn read_tag<R: Read>(reader: &mut R, tag_id: u8) -> io::Result<Tag> {
             }
             Ok(Tag::LongArray(data))
         }
-        _ => Err(io::Error::new(io::ErrorKind::InvalidData, "Unknown tag ID")),
+        _ => Err(Error::new(ErrorKind::InvalidData, "Unknown tag ID")),
     }
 }
 
 /// Reads an NBT file from a byte vector and returns its root compound tag.
-pub fn read_nbt_file(data: Vec<u8>) -> io::Result<Tag> {
+pub fn read_nbt_file(data: Vec<u8>) -> Result<Tag> {
     let mut cursor = Cursor::new(data);
     let root_tag_id = read_u8(&mut cursor)?;
     let name_length = read_u16(&mut cursor)? as usize;
@@ -112,45 +112,45 @@ pub fn read_nbt_file(data: Vec<u8>) -> io::Result<Tag> {
 }
 
 /// Helper functions to read various data types from a reader.
-fn read_u8<R: Read>(reader: &mut R) -> io::Result<u8> {
+fn read_u8<R: Read>(reader: &mut R) -> Result<u8> {
     let mut buffer = [0; 1];
     reader.read_exact(&mut buffer)?;
     Ok(buffer[0])
 }
 
-fn read_i8<R: Read>(reader: &mut R) -> io::Result<i8> {
+fn read_i8<R: Read>(reader: &mut R) -> Result<i8> {
     Ok(read_u8(reader)? as i8)
 }
 
-fn read_u16<R: Read>(reader: &mut R) -> io::Result<u16> {
+fn read_u16<R: Read>(reader: &mut R) -> Result<u16> {
     let mut buffer = [0; 2];
     reader.read_exact(&mut buffer)?;
     Ok(u16::from_be_bytes(buffer))
 }
 
-fn read_i16<R: Read>(reader: &mut R) -> io::Result<i16> {
+fn read_i16<R: Read>(reader: &mut R) -> Result<i16> {
     Ok(read_u16(reader)? as i16)
 }
 
-fn read_i32<R: Read>(reader: &mut R) -> io::Result<i32> {
+fn read_i32<R: Read>(reader: &mut R) -> Result<i32> {
     let mut buffer = [0; 4];
     reader.read_exact(&mut buffer)?;
     Ok(i32::from_be_bytes(buffer))
 }
 
-fn read_i64<R: Read>(reader: &mut R) -> io::Result<i64> {
+fn read_i64<R: Read>(reader: &mut R) -> Result<i64> {
     let mut buffer = [0; 8];
     reader.read_exact(&mut buffer)?;
     Ok(i64::from_be_bytes(buffer))
 }
 
-fn read_f32<R: Read>(reader: &mut R) -> io::Result<f32> {
+fn read_f32<R: Read>(reader: &mut R) -> Result<f32> {
     let mut buffer = [0; 4];
     reader.read_exact(&mut buffer)?;
     Ok(f32::from_be_bytes(buffer))
 }
 
-fn read_f64<R: Read>(reader: &mut R) -> io::Result<f64> {
+fn read_f64<R: Read>(reader: &mut R) -> Result<f64> {
     let mut buffer = [0; 8];
     reader.read_exact(&mut buffer)?;
     Ok(f64::from_be_bytes(buffer))
