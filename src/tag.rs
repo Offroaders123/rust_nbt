@@ -1,6 +1,6 @@
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::{self, Read};
+use std::fs;
+use std::io::{self, Cursor, Read};
 
 /// Represents an NBT tag type.
 #[repr(u8)]
@@ -101,15 +101,15 @@ fn read_tag<R: Read>(reader: &mut R, tag_id: u8) -> io::Result<Tag> {
     }
 }
 
-/// Reads a single NBT file and returns its root compound tag.
-fn read_nbt_file(file_path: &str) -> io::Result<Tag> {
-    let mut file = File::open(file_path)?;
-    let root_tag_id = read_u8(&mut file)?;
-    let name_length = read_u16(&mut file)? as usize;
+/// Reads an NBT file from a byte vector and returns its root compound tag.
+fn read_nbt_file(data: Vec<u8>) -> io::Result<Tag> {
+    let mut cursor = Cursor::new(data);
+    let root_tag_id = read_u8(&mut cursor)?;
+    let name_length = read_u16(&mut cursor)? as usize;
     let mut name_buffer = vec![0; name_length];
-    file.read_exact(&mut name_buffer)?;
+    cursor.read_exact(&mut name_buffer)?;
     let _root_name = String::from_utf8(name_buffer).unwrap();
-    read_tag(&mut file, root_tag_id)
+    read_tag(&mut cursor, root_tag_id)
 }
 
 /// Helper functions to read various data types from a reader.
@@ -158,7 +158,9 @@ fn read_f64<R: Read>(reader: &mut R) -> io::Result<f64> {
 }
 
 fn main() -> io::Result<()> {
-    let nbt_data = read_nbt_file("example.nbt")?;
+    // Example usage: Pass an NBT file's binary contents as a Vec<u8>
+    let nbt_bytes = fs::read("example.nbt")?;
+    let nbt_data = read_nbt_file(nbt_bytes)?;
     println!("{:#?}", nbt_data);
     Ok(())
 }
