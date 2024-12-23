@@ -8,7 +8,6 @@ fn main() -> () {
     let data: Vec<u8> = fs::read(file).unwrap();
     println!("{:?}", &data);
 
-    let mut list: ListTag<Tag> = Vec::new();
-    list.push(Tag::Byte(5));
+    let list: ListTag<Tag> = vec![Tag::Byte(5)];
     println!("{:?}", list);
 }
