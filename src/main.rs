@@ -1,12 +1,12 @@
-use rust_nbt::{read, ListTag, Tag};
+use rust_nbt::{decompress, read, ListTag, Tag};
 use std::fs;
 use std::io::Result;
 
 fn main() -> Result<()> {
-    let file: &str = "./test/hello_world.nbt";
+    let file: &str = "./test/bigtest.nbt";
     println!("{}", file);
 
-    let nbt_bytes: Vec<u8> = fs::read(file).unwrap();
+    let nbt_bytes: Vec<u8> = decompress(&fs::read(file).unwrap(), rust_nbt::CompressionFormat::Gzip)?;
     println!("{:?}", &nbt_bytes);
 
     let list: ListTag<Tag> = vec![Tag::Byte(5)];
