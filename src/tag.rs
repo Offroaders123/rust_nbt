@@ -4,8 +4,8 @@ use std::collections::HashMap;
 #[repr(u8)]
 #[derive(Debug)]
 pub enum Tag {
-    End,
-    Byte(ByteTag) = 1,
+    End = 0,
+    Byte(ByteTag),
     Short(ShortTag),
     Int(IntTag),
     Long(LongTag),
