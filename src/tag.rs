@@ -1,6 +1,6 @@
-use std::io::{self, Read};
-use std::fs::File;
 use std::collections::HashMap;
+use std::fs::File;
+use std::io::{self, Read};
 
 /// Represents an NBT tag type.
 #[repr(u8)]

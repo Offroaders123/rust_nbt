@@ -1,5 +1,5 @@
-use std::fs;
 use rust_nbt::tag::{ListTag, Tag};
+use std::fs;
 
 fn main() -> () {
     let file: &str = "./test/hello_world.nbt";
