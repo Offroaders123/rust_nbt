@@ -1,5 +1,4 @@
-use rust_nbt::read::read_nbt_file;
-use rust_nbt::tag::{ListTag, Tag};
+use rust_nbt::{read_nbt_file, ListTag, Tag};
 use std::fs;
 use std::io::Result;
 

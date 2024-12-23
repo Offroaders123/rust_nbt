@@ -1,2 +1,4 @@
-pub mod read;
-pub mod tag;
+mod read;
+mod tag;
+pub use read::*;
+pub use tag::*;
