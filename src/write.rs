@@ -1,6 +1,4 @@
 use crate::tag::Tag;
-use crate::{ByteArrayTag, CompoundTag, ListTag};
-use indexmap::IndexMap;
 use std::io::{Cursor, Result, Write};
 
 /// Writes an NBT file to a byte vector, starting with the root compound tag.

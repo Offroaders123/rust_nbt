@@ -19,6 +19,26 @@ pub enum Tag {
     LongArray(LongArrayTag),
 }
 
+impl Tag {
+    pub fn id(&self) -> u8 {
+        match self {
+            Tag::End => 0,
+            Tag::Byte(_) => 1,
+            Tag::Short(_) => 2,
+            Tag::Int(_) => 3,
+            Tag::Long(_) => 4,
+            Tag::Float(_) => 5,
+            Tag::Double(_) => 6,
+            Tag::ByteArray(_) => 7,
+            Tag::String(_) => 8,
+            Tag::List(_) => 9,
+            Tag::Compound(_) => 10,
+            Tag::IntArray(_) => 11,
+            Tag::LongArray(_) => 12,
+        }
+    }
+}
+
 pub type ByteTag = i8;
 pub type ShortTag = i16;
 pub type IntTag = i32;

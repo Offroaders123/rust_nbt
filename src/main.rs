@@ -17,7 +17,7 @@ fn main() -> Result<()> {
     let nbt_data: Tag = read(nbt_bytes)?;
     println!("{:#?}", nbt_data);
 
-    let recompile: Vec<u8> = write(nbt_data)?;
+    let recompile: Vec<u8> = write(&nbt_data, "Level")?;
     println!("{:?}", &recompile);
     Ok(())
 }

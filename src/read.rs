@@ -10,7 +10,8 @@ pub fn read(data: Vec<u8>) -> Result<Tag> {
     let name_length: usize = read_u16(&mut cursor)? as usize;
     let mut name_buffer: Vec<u8> = vec![0; name_length];
     cursor.read_exact(&mut name_buffer)?;
-    let _root_name: String = String::from_utf8(name_buffer).unwrap();
+    let root_name: String = String::from_utf8(name_buffer).unwrap();
+    println!("{:?}", root_name);
     read_tag(&mut cursor, root_tag_id)
 }
 
