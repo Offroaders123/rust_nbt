@@ -4,15 +4,15 @@ use std::io::{Result, Write};
 
 // Enum for compression formats
 pub enum CompressionFormat {
-    Zlib,
-    Gzip,
     Deflate,
+    Gzip,
+    DeflateRaw,
 }
 
 // Compress data
 pub fn compress(data: &[u8], format: CompressionFormat) -> Result<Vec<u8>> {
     match format {
-        CompressionFormat::Zlib => {
+        CompressionFormat::Deflate => {
             let mut encoder = ZlibEncoder::new(Vec::new(), Compression::default());
             encoder.write_all(data)?;
             encoder.finish()
@@ -22,7 +22,7 @@ pub fn compress(data: &[u8], format: CompressionFormat) -> Result<Vec<u8>> {
             encoder.write_all(data)?;
             encoder.finish()
         }
-        CompressionFormat::Deflate => {
+        CompressionFormat::DeflateRaw => {
             let mut encoder = DeflateEncoder::new(Vec::new(), Compression::default());
             encoder.write_all(data)?;
             encoder.finish()
@@ -33,7 +33,7 @@ pub fn compress(data: &[u8], format: CompressionFormat) -> Result<Vec<u8>> {
 // Decompress data
 pub fn decompress(data: &[u8], format: CompressionFormat) -> Result<Vec<u8>> {
     match format {
-        CompressionFormat::Zlib => {
+        CompressionFormat::Deflate => {
             let mut decoder = ZlibDecoder::new(Vec::new());
             decoder.write_all(data)?;
             decoder.finish()
@@ -43,7 +43,7 @@ pub fn decompress(data: &[u8], format: CompressionFormat) -> Result<Vec<u8>> {
             decoder.write_all(data)?;
             decoder.finish()
         }
-        CompressionFormat::Deflate => {
+        CompressionFormat::DeflateRaw => {
             let mut decoder = DeflateDecoder::new(Vec::new());
             decoder.write_all(data)?;
             decoder.finish()
@@ -56,9 +56,9 @@ fn main() -> Result<()> {
     println!("Original: {:?}", input);
 
     // Compress and decompress with Zlib
-    let compressed_zlib = compress(input, CompressionFormat::Zlib)?;
+    let compressed_zlib = compress(input, CompressionFormat::Deflate)?;
     println!("Compressed with Zlib: {:?}", compressed_zlib);
-    let decompressed_zlib = decompress(&compressed_zlib, CompressionFormat::Zlib)?;
+    let decompressed_zlib = decompress(&compressed_zlib, CompressionFormat::Deflate)?;
     println!("Decompressed with Zlib: {:?}", decompressed_zlib);
 
     // Compress and decompress with Gzip
@@ -68,9 +68,9 @@ fn main() -> Result<()> {
     println!("Decompressed with Gzip: {:?}", decompressed_gzip);
 
     // Compress and decompress with Deflate
-    let compressed_deflate = compress(input, CompressionFormat::Deflate)?;
+    let compressed_deflate = compress(input, CompressionFormat::DeflateRaw)?;
     println!("Compressed with Deflate: {:?}", compressed_deflate);
-    let decompressed_deflate = decompress(&compressed_deflate, CompressionFormat::Deflate)?;
+    let decompressed_deflate = decompress(&compressed_deflate, CompressionFormat::DeflateRaw)?;
     println!("Decompressed with Deflate: {:?}", decompressed_deflate);
 
     Ok(())
