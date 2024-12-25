@@ -1,4 +1,4 @@
-use rust_nbt::{decompress, read, ListTag, Tag};
+use rust_nbt::{decompress, read, write, ListTag, Tag};
 use std::fs;
 use std::io::Result;
 
@@ -16,5 +16,8 @@ fn main() -> Result<()> {
     // Example usage: Pass an NBT file's binary contents as a Vec<u8>
     let nbt_data: Tag = read(nbt_bytes)?;
     println!("{:#?}", nbt_data);
+
+    let recompile: Vec<u8> = write(nbt_data)?;
+    println!("{:?}", &recompile);
     Ok(())
 }
