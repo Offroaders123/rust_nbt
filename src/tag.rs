@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use indexmap::IndexMap;
 
 /// Represents an NBT tag type.
 #[repr(u8)]
@@ -28,6 +28,6 @@ pub type DoubleTag = f64;
 pub type ByteArrayTag = Vec<u8>; // temp
 pub type StringTag = String;
 pub type ListTag<T> = Vec<T>;
-pub type CompoundTag = HashMap<String, Tag>;
+pub type CompoundTag = IndexMap<String, Tag>;
 pub type IntArrayTag = Vec<i32>;
 pub type LongArrayTag = Vec<i64>;

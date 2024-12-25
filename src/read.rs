@@ -1,6 +1,6 @@
 use crate::tag::Tag;
 use crate::{ByteArrayTag, CompoundTag, ListTag};
-use std::collections::HashMap;
+use indexmap::IndexMap;
 use std::io::{Cursor, Error, ErrorKind, Read, Result};
 
 /// Reads an NBT file from a byte vector and returns its root compound tag.
@@ -46,7 +46,7 @@ fn read_tag<R: Read>(reader: &mut R, tag_id: u8) -> Result<Tag> {
             Ok(Tag::List(list))
         }
         10 => {
-            let mut compound: CompoundTag = HashMap::new();
+            let mut compound: CompoundTag = IndexMap::new();
             loop {
                 let next_tag_id: u8 = read_u8(reader)?;
                 if next_tag_id == 0 {
