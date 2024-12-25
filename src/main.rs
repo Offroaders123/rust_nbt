@@ -6,7 +6,8 @@ fn main() -> Result<()> {
     let file: &str = "./test/bigtest.nbt";
     println!("{}", file);
 
-    let nbt_bytes: Vec<u8> = decompress(&fs::read(file).unwrap(), rust_nbt::CompressionFormat::Gzip)?;
+    let nbt_bytes: Vec<u8> =
+        decompress(&fs::read(file).unwrap(), rust_nbt::CompressionFormat::Gzip)?;
     println!("{:?}", &nbt_bytes);
 
     let list: ListTag<Tag> = vec![Tag::Byte(5)];
