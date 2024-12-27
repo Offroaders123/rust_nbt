@@ -53,27 +53,28 @@ pub fn decompress(data: &[u8], format: CompressionFormat) -> Result<Vec<u8>> {
     }
 }
 
-fn main() -> Result<()> {
-    let input = b"Hello, compression formats!";
-    println!("Original: {:?}", input);
+// Test module
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    // Compress and decompress with Zlib
-    let compressed_zlib = compress(input, CompressionFormat::Deflate)?;
-    println!("Compressed with Zlib: {:?}", compressed_zlib);
-    let decompressed_zlib = decompress(&compressed_zlib, CompressionFormat::Deflate)?;
-    println!("Decompressed with Zlib: {:?}", decompressed_zlib);
+    #[test]
+    fn test_compression_and_decompression() {
+        let input: &[u8; 37] = b"Hello, compression and decompression!";
 
-    // Compress and decompress with Gzip
-    let compressed_gzip = compress(input, CompressionFormat::Gzip)?;
-    println!("Compressed with Gzip: {:?}", compressed_gzip);
-    let decompressed_gzip = decompress(&compressed_gzip, CompressionFormat::Gzip)?;
-    println!("Decompressed with Gzip: {:?}", decompressed_gzip);
+        // Test Deflate
+        let compressed_deflate: Vec<u8> = compress(input, CompressionFormat::Deflate).expect("Compression failed");
+        let decompressed_deflate: Vec<u8> = decompress(&compressed_deflate, CompressionFormat::Deflate).expect("Decompression failed");
+        assert_eq!(input, &decompressed_deflate[..], "Deflate compression/decompression mismatch");
 
-    // Compress and decompress with Deflate
-    let compressed_deflate = compress(input, CompressionFormat::DeflateRaw)?;
-    println!("Compressed with Deflate: {:?}", compressed_deflate);
-    let decompressed_deflate = decompress(&compressed_deflate, CompressionFormat::DeflateRaw)?;
-    println!("Decompressed with Deflate: {:?}", decompressed_deflate);
+        // Test Gzip
+        let compressed_gzip: Vec<u8> = compress(input, CompressionFormat::Gzip).expect("Compression failed");
+        let decompressed_gzip: Vec<u8> = decompress(&compressed_gzip, CompressionFormat::Gzip).expect("Decompression failed");
+        assert_eq!(input, &decompressed_gzip[..], "Gzip compression/decompression mismatch");
 
-    Ok(())
+        // Test DeflateRaw
+        let compressed_deflate_raw: Vec<u8> = compress(input, CompressionFormat::DeflateRaw).expect("Compression failed");
+        let decompressed_deflate_raw: Vec<u8> = decompress(&compressed_deflate_raw, CompressionFormat::DeflateRaw).expect("Decompression failed");
+        assert_eq!(input, &decompressed_deflate_raw[..], "DeflateRaw compression/decompression mismatch");
+    }
 }
