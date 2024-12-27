@@ -8,19 +8,18 @@ fn main() -> Result<()> {
 
     let nbt_bytes: Vec<u8> =
         decompress(&fs::read(file).unwrap(), rust_nbt::CompressionFormat::Gzip)?;
-    // println!("{:?}", &nbt_bytes);
+    println!("{:?}", &nbt_bytes);
 
     let list: ListTag<Tag> = vec![Tag::Byte(5)];
-    // println!("{:?}", list);
+    println!("{:?}", list);
 
     // Example usage: Pass an NBT file's binary contents as a Vec<u8>
     let nbt_data: Tag = read(&nbt_bytes)?;
-    // println!("{:#?}", nbt_data);
+    println!("{:#?}", nbt_data);
 
     let recompile: Vec<u8> = write(&nbt_data, "Level")?;
-    // println!("{:?}", &recompile);
+    println!("{:?}", &recompile);
 
     assert_eq!(&nbt_bytes, &recompile);
-    println!("Hi mom :D");
     Ok(())
 }

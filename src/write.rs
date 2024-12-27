@@ -8,7 +8,6 @@ pub fn write(tag: &Tag, root_name: &str) -> Result<Vec<u8>> {
     write_u16(&mut cursor, root_name.len() as u16)?;
     cursor.write_all(root_name.as_bytes())?;
     write_tag(&mut cursor, tag)?;
-    write_i8(&mut cursor, 5)?;
     Ok(cursor.into_inner())
 }
 
