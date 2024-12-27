@@ -19,5 +19,7 @@ fn main() -> Result<()> {
 
     let recompile: Vec<u8> = write(&nbt_data, "Level")?;
     println!("{:?}", &recompile);
+
+    assert_eq!(&nbt_bytes, &recompile);
     Ok(())
 }
