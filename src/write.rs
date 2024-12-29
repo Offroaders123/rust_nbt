@@ -22,6 +22,7 @@ fn write_tag<W: Write>(writer: &mut W, tag: &Tag) -> Result<()> {
         Tag::Float(value) => write_f32(writer, *value),
         Tag::Double(value) => write_f64(writer, *value),
         Tag::ByteArray(data) => {
+            println!("{:?}", data.len());
             write_i32(writer, data.len() as i32)?;
             for value in data {
                 write_i8(writer, *value)?;

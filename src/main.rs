@@ -17,6 +17,8 @@ fn main() -> Result<()> {
     let recompile: Vec<u8> = write(&nbt_data, "Level")?;
     println!("{:?}", &recompile[0..10]);
 
+    // fs::write("./test/bigtest-plain2.nbt", &recompile)?;
+
     assert_eq!(&nbt_bytes, &recompile);
     println!("Successful r/w!");
 
