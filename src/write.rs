@@ -23,7 +23,10 @@ fn write_tag<W: Write>(writer: &mut W, tag: &Tag) -> Result<()> {
         Tag::Double(value) => write_f64(writer, *value),
         Tag::ByteArray(data) => {
             write_i32(writer, data.len() as i32)?;
-            writer.write_all(data)
+            for value in data {
+                write_i8(writer, *value)?;
+            }
+            Ok(())
         }
         Tag::String(value) => {
             write_u16(writer, value.len() as u16)?;

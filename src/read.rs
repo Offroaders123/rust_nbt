@@ -28,7 +28,9 @@ fn read_tag<R: Read>(reader: &mut R, tag_id: u8) -> Result<Tag> {
         7 => {
             let length: usize = read_i32(reader)? as usize;
             let mut data: ByteArrayTag = vec![0; length];
-            reader.read_exact(&mut data)?;
+            for _ in 0..length {
+                data.push(read_i8(reader)?);
+            }
             Ok(Tag::ByteArray(data))
         }
         8 => {
