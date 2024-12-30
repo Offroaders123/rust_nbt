@@ -27,13 +27,10 @@ fn read_tag<R: Read>(reader: &mut R, tag_id: u8) -> Result<Tag> {
         6 => Ok(Tag::Double(read_f64(reader)?)),
         7 => {
             let length: usize = read_i32(reader)? as usize;
-            println!("{:?}", length);
             let mut data: ByteArrayTag = Vec::with_capacity(length);
-            println!("{:?}", data);
             for _ in 0..length {
                 data.push(read_i8(reader)?);
             }
-            println!("{:?}", data);
             Ok(Tag::ByteArray(data))
         }
         8 => {
@@ -61,12 +58,8 @@ fn read_tag<R: Read>(reader: &mut R, tag_id: u8) -> Result<Tag> {
                 let name_length: usize = read_u16(reader)? as usize;
                 let mut name_buffer: Vec<u8> = vec![0; name_length];
                 reader.read_exact(&mut name_buffer)?;
-                // println!("{:?}", name_buffer);
                 let name: String = String::from_utf8(name_buffer).unwrap();
                 let tag: Tag = read_tag(reader, next_tag_id)?;
-                if name.contains("byteArray") {
-                    println!("{:?}: {:?}", name, tag);
-                }
                 compound.insert(name, tag);
             }
             Ok(Tag::Compound(compound))
