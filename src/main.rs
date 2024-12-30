@@ -19,8 +19,8 @@ fn main() -> Result<()> {
 
     // fs::write("./test/bigtest-plain2.nbt", &recompile)?;
 
-    // assert_eq!(&nbt_bytes, &recompile);
-    // println!("Successful r/w!");
+    assert_eq!(&nbt_bytes, &recompile);
+    println!("Successful r/w!");
 
     Ok(())
 }
