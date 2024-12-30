@@ -1,5 +1,5 @@
 use crate::tag::Tag;
-use crate::{ByteArrayTag, CompoundTag, ListTag};
+use crate::{ByteArrayTag, CompoundTag, IntArrayTag, ListTag, LongArrayTag, StringTag};
 use indexmap::IndexMap;
 use std::io::{Cursor, Error, ErrorKind, Read, Result};
 
@@ -25,61 +25,12 @@ fn read_tag<R: Read>(reader: &mut R, tag_id: u8) -> Result<Tag> {
         4 => Ok(Tag::Long(read_i64(reader)?)),
         5 => Ok(Tag::Float(read_f32(reader)?)),
         6 => Ok(Tag::Double(read_f64(reader)?)),
-        7 => {
-            let length: usize = read_i32(reader)? as usize;
-            let mut data: ByteArrayTag = Vec::with_capacity(length);
-            for _ in 0..length {
-                data.push(read_i8(reader)?);
-            }
-            Ok(Tag::ByteArray(data))
-        }
-        8 => {
-            let length: usize = read_u16(reader)? as usize;
-            let mut buffer: Vec<u8> = vec![0; length];
-            reader.read_exact(&mut buffer)?;
-            Ok(Tag::String(String::from_utf8(buffer).unwrap()))
-        }
-        9 => {
-            let item_type: u8 = read_u8(reader)?;
-            let length: usize = read_i32(reader)? as usize;
-            let mut list: ListTag<Tag> = Vec::with_capacity(length);
-            for _ in 0..length {
-                list.push(read_tag(reader, item_type)?);
-            }
-            Ok(Tag::List(list))
-        }
-        10 => {
-            let mut compound: CompoundTag = IndexMap::new();
-            loop {
-                let next_tag_id: u8 = read_u8(reader)?;
-                if next_tag_id == 0 {
-                    break;
-                }
-                let name_length: usize = read_u16(reader)? as usize;
-                let mut name_buffer: Vec<u8> = vec![0; name_length];
-                reader.read_exact(&mut name_buffer)?;
-                let name: String = String::from_utf8(name_buffer).unwrap();
-                let tag: Tag = read_tag(reader, next_tag_id)?;
-                compound.insert(name, tag);
-            }
-            Ok(Tag::Compound(compound))
-        }
-        11 => {
-            let length: usize = read_i32(reader)? as usize;
-            let mut data: Vec<i32> = Vec::with_capacity(length);
-            for _ in 0..length {
-                data.push(read_i32(reader)?);
-            }
-            Ok(Tag::IntArray(data))
-        }
-        12 => {
-            let length: usize = read_i32(reader)? as usize;
-            let mut data: Vec<i64> = Vec::with_capacity(length);
-            for _ in 0..length {
-                data.push(read_i64(reader)?);
-            }
-            Ok(Tag::LongArray(data))
-        }
+        7 => Ok(Tag::ByteArray(read_byte_array(reader)?)),
+        8 => Ok(Tag::String(read_string(reader)?)),
+        9 => Ok(Tag::List(read_list(reader)?)),
+        10 => Ok(Tag::Compound(read_compound(reader)?)),
+        11 => Ok(Tag::IntArray(read_int_array(reader)?)),
+        12 => Ok(Tag::LongArray(read_long_array(reader)?)),
         _ => Err(Error::new(ErrorKind::InvalidData, "Unknown tag ID")),
     }
 }
@@ -127,4 +78,65 @@ fn read_f64<R: Read>(reader: &mut R) -> Result<f64> {
     let mut buffer: [u8; 8] = [0; 8];
     reader.read_exact(&mut buffer)?;
     Ok(f64::from_be_bytes(buffer))
+}
+
+fn read_byte_array<R: Read>(reader: &mut R) -> Result<ByteArrayTag> {
+    let length: usize = read_i32(reader)? as usize;
+    let mut data: ByteArrayTag = Vec::with_capacity(length);
+    for _ in 0..length {
+        data.push(read_i8(reader)?);
+    }
+    Ok(data)
+}
+
+fn read_string<R: Read>(reader: &mut R) -> Result<StringTag> {
+    let length: usize = read_u16(reader)? as usize;
+    let mut buffer: Vec<u8> = vec![0; length];
+    reader.read_exact(&mut buffer)?;
+    Ok(String::from_utf8(buffer).unwrap())
+}
+
+fn read_list<R: Read>(reader: &mut R) -> Result<ListTag<Tag>> {
+    let item_type: u8 = read_u8(reader)?;
+    let length: usize = read_i32(reader)? as usize;
+    let mut list: ListTag<Tag> = Vec::with_capacity(length);
+    for _ in 0..length {
+        list.push(read_tag(reader, item_type)?);
+    }
+    Ok(list)
+}
+
+fn read_compound<R: Read>(reader: &mut R) -> Result<CompoundTag> {
+    let mut compound: CompoundTag = IndexMap::new();
+    loop {
+        let next_tag_id: u8 = read_u8(reader)?;
+        if next_tag_id == 0 {
+            break;
+        }
+        let name_length: usize = read_u16(reader)? as usize;
+        let mut name_buffer: Vec<u8> = vec![0; name_length];
+        reader.read_exact(&mut name_buffer)?;
+        let name: String = String::from_utf8(name_buffer).unwrap();
+        let tag: Tag = read_tag(reader, next_tag_id)?;
+        compound.insert(name, tag);
+    }
+    Ok(compound)
+}
+
+fn read_int_array<R: Read>(reader: &mut R) -> Result<IntArrayTag> {
+    let length: usize = read_i32(reader)? as usize;
+    let mut data: Vec<i32> = Vec::with_capacity(length);
+    for _ in 0..length {
+        data.push(read_i32(reader)?);
+    }
+    Ok(data)
+}
+
+fn read_long_array<R: Read>(reader: &mut R) -> Result<LongArrayTag> {
+    let length: usize = read_i32(reader)? as usize;
+    let mut data: Vec<i64> = Vec::with_capacity(length);
+    for _ in 0..length {
+        data.push(read_i64(reader)?);
+    }
+    Ok(data)
 }

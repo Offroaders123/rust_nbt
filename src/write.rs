@@ -1,4 +1,4 @@
-use crate::tag::Tag;
+use crate::{tag::Tag, ByteArrayTag, CompoundTag, IntArrayTag, ListTag, LongArrayTag, StringTag};
 use std::io::{Cursor, Result, Write};
 
 /// Writes an NBT file to a byte vector, starting with the root compound tag.
@@ -21,53 +21,12 @@ fn write_tag<W: Write>(writer: &mut W, tag: &Tag) -> Result<()> {
         Tag::Long(value) => write_i64(writer, *value),
         Tag::Float(value) => write_f32(writer, *value),
         Tag::Double(value) => write_f64(writer, *value),
-        Tag::ByteArray(data) => {
-            write_i32(writer, data.len() as i32)?;
-            for value in data {
-                write_i8(writer, *value)?;
-            }
-            Ok(())
-        }
-        Tag::String(value) => {
-            write_u16(writer, value.len() as u16)?;
-            writer.write_all(value.as_bytes())
-        }
-        Tag::List(list) => {
-            if let Some(first_item) = list.first() {
-                write_u8(writer, first_item.id())?;
-                write_i32(writer, list.len() as i32)?;
-                for item in list {
-                    write_tag(writer, item)?;
-                }
-            } else {
-                write_u8(writer, 0)?; // Empty list type.
-                write_i32(writer, 0)?; // Empty list length.
-            }
-            Ok(())
-        }
-        Tag::Compound(compound) => {
-            for (key, value) in compound {
-                write_u8(writer, value.id())?;
-                write_u16(writer, key.len() as u16)?;
-                writer.write_all(key.as_bytes())?;
-                write_tag(writer, value)?;
-            }
-            write_u8(writer, 0) // End tag for compound.
-        }
-        Tag::IntArray(data) => {
-            write_i32(writer, data.len() as i32)?;
-            for value in data {
-                write_i32(writer, *value)?;
-            }
-            Ok(())
-        }
-        Tag::LongArray(data) => {
-            write_i32(writer, data.len() as i32)?;
-            for value in data {
-                write_i64(writer, *value)?;
-            }
-            Ok(())
-        }
+        Tag::ByteArray(data) => write_byte_array(writer, data),
+        Tag::String(value) => write_string(writer, value),
+        Tag::List(list) => write_list(writer, list),
+        Tag::Compound(compound) => write_compound(writer, compound),
+        Tag::IntArray(data) => write_int_array(writer, data),
+        Tag::LongArray(data) => write_long_array(writer, data),
     }
 }
 
@@ -102,4 +61,57 @@ fn write_f32<W: Write>(writer: &mut W, value: f32) -> Result<()> {
 
 fn write_f64<W: Write>(writer: &mut W, value: f64) -> Result<()> {
     writer.write_all(&value.to_be_bytes())
+}
+
+fn write_byte_array<W: Write>(writer: &mut W, data: &ByteArrayTag) -> Result<()> {
+    write_i32(writer, data.len() as i32)?;
+    for value in data {
+        write_i8(writer, *value)?;
+    }
+    Ok(())
+}
+
+fn write_string<W: Write>(writer: &mut W, value: &StringTag) -> Result<()> {
+    write_u16(writer, value.len() as u16)?;
+    writer.write_all(value.as_bytes())
+}
+
+fn write_list<W: Write>(writer: &mut W, list: &ListTag<Tag>) -> Result<()> {
+    if let Some(first_item) = list.first() {
+        write_u8(writer, first_item.id())?;
+        write_i32(writer, list.len() as i32)?;
+        for item in list {
+            write_tag(writer, item)?;
+        }
+    } else {
+        write_u8(writer, 0)?; // Empty list type.
+        write_i32(writer, 0)?; // Empty list length.
+    }
+    Ok(())
+}
+
+fn write_compound<W: Write>(writer: &mut W, compound: &CompoundTag) -> Result<()> {
+    for (key, value) in compound {
+        write_u8(writer, value.id())?;
+        write_u16(writer, key.len() as u16)?;
+        writer.write_all(key.as_bytes())?;
+        write_tag(writer, value)?;
+    }
+    write_u8(writer, 0) // End tag for compound.
+}
+
+fn write_int_array<W: Write>(writer: &mut W, data: &IntArrayTag) -> Result<()> {
+    write_i32(writer, data.len() as i32)?;
+    for value in data {
+        write_i32(writer, *value)?;
+    }
+    Ok(())
+}
+
+fn write_long_array<W: Write>(writer: &mut W, data: &LongArrayTag) -> Result<()> {
+    write_i32(writer, data.len() as i32)?;
+    for value in data {
+        write_i64(writer, *value)?;
+    }
+    Ok(())
 }
