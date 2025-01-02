@@ -16,14 +16,8 @@ fn read_root(data: &[u8]) -> Result<RootTag> {
     cursor.read_exact(&mut name_buffer)?;
     let root_name: String = String::from_utf8(name_buffer).unwrap();
     println!("{:?}", root_name);
-    match read_tag(&mut cursor, root_tag_id)? {
-        Tag::List(value) => Ok(RootTag::List(value)),
-        Tag::Compound(value) => Ok(RootTag::Compound(value)),
-        _ => Err(Error::new(
-            ErrorKind::InvalidData,
-            "Expected an opening List or Compound tag at the start of the buffer",
-        )),
-    }
+    let tag: Tag = read_tag(&mut cursor, root_tag_id)?;
+    RootTag::from_tag(tag)
 }
 
 /// Reads a single NBT tag from the given reader.

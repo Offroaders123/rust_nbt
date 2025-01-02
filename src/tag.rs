@@ -1,4 +1,5 @@
 use indexmap::IndexMap;
+use std::io::{Error, ErrorKind, Result};
 
 /// Represents an NBT tag type.
 #[repr(u8)]
@@ -44,6 +45,26 @@ impl Tag {
 pub enum RootTag {
     List(ListTag<Tag>) = 9,
     Compound(CompoundTag),
+}
+
+impl RootTag {
+    pub fn from_tag(tag: Tag) -> Result<Self> {
+        match tag {
+            Tag::List(value) => Ok(RootTag::List(value)),
+            Tag::Compound(value) => Ok(RootTag::Compound(value)),
+            _ => Err(Error::new(
+                ErrorKind::InvalidData,
+                "Expected an opening List or Compound tag at the start of the buffer",
+            )),
+        }
+    }
+
+    pub fn into_tag(self) -> Tag {
+        match self {
+            RootTag::List(list) => Tag::List(list),
+            RootTag::Compound(compound) => Tag::Compound(compound),
+        }
+    }
 }
 
 pub type ByteTag = i8;
