@@ -3,7 +3,7 @@ use std::io::{Error, ErrorKind, Result};
 
 /// Represents an NBT tag type.
 #[repr(u8)]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum Tag {
     End = 0,
     Byte(ByteTag),
@@ -59,10 +59,10 @@ impl RootTag {
         }
     }
 
-    pub fn into_tag(self) -> Tag {
+    pub fn into_tag(&self) -> Tag {
         match self {
-            RootTag::List(list) => Tag::List(list),
-            RootTag::Compound(compound) => Tag::Compound(compound),
+            RootTag::List(list) => Tag::List(list.clone()),
+            RootTag::Compound(compound) => Tag::Compound(compound.clone()),
         }
     }
 }
