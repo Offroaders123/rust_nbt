@@ -15,17 +15,20 @@ pub enum CompressionFormat {
 pub fn compress(data: &[u8], format: CompressionFormat) -> Result<Vec<u8>> {
     match format {
         CompressionFormat::Deflate => {
-            let mut encoder = ZlibEncoder::new(Vec::new(), Compression::default());
+            let mut encoder: ZlibEncoder<Vec<u8>> =
+                ZlibEncoder::new(Vec::new(), Compression::default());
             encoder.write_all(data)?;
             encoder.finish()
         }
         CompressionFormat::Gzip => {
-            let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
+            let mut encoder: GzEncoder<Vec<u8>> =
+                GzEncoder::new(Vec::new(), Compression::default());
             encoder.write_all(data)?;
             encoder.finish()
         }
         CompressionFormat::DeflateRaw => {
-            let mut encoder = DeflateEncoder::new(Vec::new(), Compression::default());
+            let mut encoder: DeflateEncoder<Vec<u8>> =
+                DeflateEncoder::new(Vec::new(), Compression::default());
             encoder.write_all(data)?;
             encoder.finish()
         }
@@ -36,17 +39,17 @@ pub fn compress(data: &[u8], format: CompressionFormat) -> Result<Vec<u8>> {
 pub fn decompress(data: &[u8], format: CompressionFormat) -> Result<Vec<u8>> {
     match format {
         CompressionFormat::Deflate => {
-            let mut decoder = ZlibDecoder::new(Vec::new());
+            let mut decoder: ZlibDecoder<Vec<u8>> = ZlibDecoder::new(Vec::new());
             decoder.write_all(data)?;
             decoder.finish()
         }
         CompressionFormat::Gzip => {
-            let mut decoder = GzDecoder::new(Vec::new());
+            let mut decoder: GzDecoder<Vec<u8>> = GzDecoder::new(Vec::new());
             decoder.write_all(data)?;
             decoder.finish()
         }
         CompressionFormat::DeflateRaw => {
-            let mut decoder = DeflateDecoder::new(Vec::new());
+            let mut decoder: DeflateDecoder<Vec<u8>> = DeflateDecoder::new(Vec::new());
             decoder.write_all(data)?;
             decoder.finish()
         }
