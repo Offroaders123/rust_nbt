@@ -39,6 +39,13 @@ impl Tag {
     }
 }
 
+#[repr(u8)]
+#[derive(Debug)]
+pub enum RootTag {
+    List(ListTag<Tag>) = 9,
+    Compound(CompoundTag),
+}
+
 pub type ByteTag = i8;
 pub type ShortTag = i16;
 pub type IntTag = i32;
