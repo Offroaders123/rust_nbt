@@ -1,14 +1,10 @@
 use crate::tag::Tag;
-use crate::{ByteArrayTag, CompoundTag, IntArrayTag, ListTag, LongArrayTag, RootTag, StringTag};
+use crate::{ByteArrayTag, CompoundTag, IntArrayTag, ListTag, LongArrayTag, StringTag};
 use indexmap::IndexMap;
 use std::io::{Cursor, Error, ErrorKind, Read, Result};
 
 /// Reads an NBT file from a byte vector and returns its root compound tag.
-pub fn read(data: &[u8]) -> Result<RootTag> {
-    read_root(data)
-}
-
-fn read_root(data: &[u8]) -> Result<RootTag> {
+pub fn read(data: &[u8]) -> Result<Tag> {
     let mut cursor: Cursor<&[u8]> = Cursor::new(&data);
     let root_tag_id: u8 = read_unsigned_byte(&mut cursor)?;
     let name_length: usize = read_unsigned_short(&mut cursor)? as usize;
@@ -16,8 +12,7 @@ fn read_root(data: &[u8]) -> Result<RootTag> {
     cursor.read_exact(&mut name_buffer)?;
     let root_name: String = String::from_utf8(name_buffer).unwrap();
     println!("{:?}", root_name);
-    let tag: Tag = read_tag(&mut cursor, root_tag_id)?;
-    RootTag::from_tag(tag)
+    read_tag(&mut cursor, root_tag_id)
 }
 
 /// Reads a single NBT tag from the given reader.

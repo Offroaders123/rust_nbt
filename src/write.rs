@@ -1,14 +1,13 @@
-use crate::{tag::Tag, ByteArrayTag, CompoundTag, IntArrayTag, ListTag, LongArrayTag, RootTag, StringTag};
+use crate::{tag::Tag, ByteArrayTag, CompoundTag, IntArrayTag, ListTag, LongArrayTag, StringTag};
 use std::io::{Cursor, Result, Write};
 
 /// Writes an NBT file to a byte vector, starting with the root compound tag.
-pub fn write(root: &RootTag, root_name: &str) -> Result<Vec<u8>> {
+pub fn write(tag: &Tag, root_name: &str) -> Result<Vec<u8>> {
     let mut cursor: Cursor<Vec<u8>> = Cursor::new(Vec::new());
-    let tag: Tag = root.into_tag();
     write_unsigned_byte(&mut cursor, tag.id())?;
     write_unsigned_short(&mut cursor, root_name.len() as u16)?;
     cursor.write_all(root_name.as_bytes())?;
-    write_tag(&mut cursor, &tag)?;
+    write_tag(&mut cursor, tag)?;
     Ok(cursor.into_inner())
 }
 

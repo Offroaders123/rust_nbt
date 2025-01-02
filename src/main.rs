@@ -1,4 +1,4 @@
-use rust_nbt::{decompress, read, write, RootTag};
+use rust_nbt::{decompress, read, write, Tag};
 use std::fs;
 use std::io::Result;
 
@@ -11,7 +11,7 @@ fn main() -> Result<()> {
     println!("{:?}", &nbt_bytes[0..10]);
 
     // Example usage: Pass an NBT file's binary contents as a Vec<u8>
-    let nbt_data: RootTag = read(&nbt_bytes)?;
+    let nbt_data: Tag = read(&nbt_bytes)?;
     println!("{:#?}", nbt_data);
 
     let recompile: Vec<u8> = write(&nbt_data, "Level")?;
