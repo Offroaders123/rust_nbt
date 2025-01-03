@@ -1,40 +1,44 @@
 use crate::{
     ByteArrayTag, ByteTag, CompoundTag, DoubleTag, FloatTag, IntArrayTag, IntTag, ListTag,
-    LongArrayTag, LongTag, ShortTag, StringTag, Tag,
+    LongArrayTag, LongTag, ShortTag, StringTag, Tag, TagID,
 };
 use indexmap::IndexMap;
-use std::io::{Cursor, Error, ErrorKind, Read, Result};
+use std::io::{Cursor, Read, Result};
 
 /// Reads an NBT file from a byte vector and returns its root compound tag.
 pub fn read(data: &[u8]) -> Result<Tag> {
     let mut cursor: Cursor<&[u8]> = Cursor::new(&data);
-    let root_tag_id: u8 = read_unsigned_byte(&mut cursor)?;
+    let root_tag_id: TagID = read_tag_id(&mut cursor)?;
     let name_length: usize = read_unsigned_short(&mut cursor)? as usize;
     let mut name_buffer: Vec<u8> = vec![0; name_length];
     cursor.read_exact(&mut name_buffer)?;
     let root_name: String = String::from_utf8(name_buffer).unwrap();
     println!("{:?}", root_name);
-    read_tag(&mut cursor, root_tag_id)
+    read_tag(&mut cursor, &root_tag_id)
 }
 
 /// Reads a single NBT tag from the given reader.
-fn read_tag<R: Read>(reader: &mut R, tag_id: u8) -> Result<Tag> {
+fn read_tag<R: Read>(reader: &mut R, tag_id: &TagID) -> Result<Tag> {
     match tag_id {
-        0 => Ok(Tag::End),
-        1 => Ok(Tag::Byte(read_byte(reader)?)),
-        2 => Ok(Tag::Short(read_short(reader)?)),
-        3 => Ok(Tag::Int(read_int(reader)?)),
-        4 => Ok(Tag::Long(read_long(reader)?)),
-        5 => Ok(Tag::Float(read_float(reader)?)),
-        6 => Ok(Tag::Double(read_double(reader)?)),
-        7 => Ok(Tag::ByteArray(read_byte_array(reader)?)),
-        8 => Ok(Tag::String(read_string(reader)?)),
-        9 => Ok(Tag::List(read_list(reader)?)),
-        10 => Ok(Tag::Compound(read_compound(reader)?)),
-        11 => Ok(Tag::IntArray(read_int_array(reader)?)),
-        12 => Ok(Tag::LongArray(read_long_array(reader)?)),
-        _ => Err(Error::new(ErrorKind::InvalidData, "Unknown tag ID")),
+        TagID::End => Ok(Tag::End),
+        TagID::Byte => Ok(Tag::Byte(read_byte(reader)?)),
+        TagID::Short => Ok(Tag::Short(read_short(reader)?)),
+        TagID::Int => Ok(Tag::Int(read_int(reader)?)),
+        TagID::Long => Ok(Tag::Long(read_long(reader)?)),
+        TagID::Float => Ok(Tag::Float(read_float(reader)?)),
+        TagID::Double => Ok(Tag::Double(read_double(reader)?)),
+        TagID::ByteArray => Ok(Tag::ByteArray(read_byte_array(reader)?)),
+        TagID::String => Ok(Tag::String(read_string(reader)?)),
+        TagID::List => Ok(Tag::List(read_list(reader)?)),
+        TagID::Compound => Ok(Tag::Compound(read_compound(reader)?)),
+        TagID::IntArray => Ok(Tag::IntArray(read_int_array(reader)?)),
+        TagID::LongArray => Ok(Tag::LongArray(read_long_array(reader)?)),
     }
+}
+
+fn read_tag_id<R: Read>(reader: &mut R) -> Result<TagID> {
+    let value: u8 = read_unsigned_byte(reader)?;
+    TagID::to_id(value)
 }
 
 /// Helper functions to read various data types from a reader.
@@ -99,11 +103,11 @@ fn read_string<R: Read>(reader: &mut R) -> Result<StringTag> {
 }
 
 fn read_list<R: Read>(reader: &mut R) -> Result<ListTag<Tag>> {
-    let item_type: u8 = read_unsigned_byte(reader)?;
+    let item_type: TagID = read_tag_id(reader)?;
     let length: usize = read_int(reader)? as usize;
     let mut list: ListTag<Tag> = Vec::with_capacity(length);
     for _ in 0..length {
-        list.push(read_tag(reader, item_type)?);
+        list.push(read_tag(reader, &item_type)?);
     }
     Ok(list)
 }
@@ -111,15 +115,16 @@ fn read_list<R: Read>(reader: &mut R) -> Result<ListTag<Tag>> {
 fn read_compound<R: Read>(reader: &mut R) -> Result<CompoundTag> {
     let mut compound: CompoundTag = IndexMap::new();
     loop {
-        let next_tag_id: u8 = read_unsigned_byte(reader)?;
-        if next_tag_id == 0 {
-            break;
+        let next_tag_id: TagID = read_tag_id(reader)?;
+        match next_tag_id {
+            TagID::End => break,
+            _ => (),
         }
         let name_length: usize = read_unsigned_short(reader)? as usize;
         let mut name_buffer: Vec<u8> = vec![0; name_length];
         reader.read_exact(&mut name_buffer)?;
         let name: String = String::from_utf8(name_buffer).unwrap();
-        let tag: Tag = read_tag(reader, next_tag_id)?;
+        let tag: Tag = read_tag(reader, &next_tag_id)?;
         compound.insert(name, tag);
     }
     Ok(compound)

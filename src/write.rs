@@ -1,13 +1,13 @@
 use crate::{
     ByteArrayTag, ByteTag, CompoundTag, DoubleTag, FloatTag, IntArrayTag, IntTag, ListTag,
-    LongArrayTag, LongTag, ShortTag, StringTag, Tag,
+    LongArrayTag, LongTag, ShortTag, StringTag, Tag, TagID,
 };
 use std::io::{Cursor, Result, Write};
 
 /// Writes an NBT file to a byte vector, starting with the root compound tag.
 pub fn write(tag: &Tag, root_name: &str) -> Result<Vec<u8>> {
     let mut cursor: Cursor<Vec<u8>> = Cursor::new(Vec::new());
-    write_unsigned_byte(&mut cursor, tag.id())?;
+    write_tag_id(&mut cursor, tag.id())?;
     write_unsigned_short(&mut cursor, root_name.len() as u16)?;
     cursor.write_all(root_name.as_bytes())?;
     write_tag(&mut cursor, tag)?;
@@ -31,6 +31,11 @@ fn write_tag<W: Write>(writer: &mut W, tag: &Tag) -> Result<()> {
         Tag::IntArray(data) => write_int_array(writer, data),
         Tag::LongArray(data) => write_long_array(writer, data),
     }
+}
+
+fn write_tag_id<W: Write>(writer: &mut W, tag_id: TagID) -> Result<()> {
+    let value: u8 = tag_id as u8;
+    write_unsigned_byte(writer, value)
 }
 
 /// Helper functions to write various data types to a writer.
@@ -81,7 +86,7 @@ fn write_string<W: Write>(writer: &mut W, value: &StringTag) -> Result<()> {
 
 fn write_list<W: Write>(writer: &mut W, list: &ListTag<Tag>) -> Result<()> {
     if let Some(first_item) = list.first() {
-        write_unsigned_byte(writer, first_item.id())?;
+        write_tag_id(writer, first_item.id())?;
         write_int(writer, list.len() as i32)?;
         for item in list {
             write_tag(writer, item)?;
@@ -95,7 +100,7 @@ fn write_list<W: Write>(writer: &mut W, list: &ListTag<Tag>) -> Result<()> {
 
 fn write_compound<W: Write>(writer: &mut W, compound: &CompoundTag) -> Result<()> {
     for (key, value) in compound {
-        write_unsigned_byte(writer, value.id())?;
+        write_tag_id(writer, value.id())?;
         write_unsigned_short(writer, key.len() as u16)?;
         writer.write_all(key.as_bytes())?;
         write_tag(writer, value)?;
