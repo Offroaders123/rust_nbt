@@ -71,55 +71,62 @@ fn write_double<W: Write>(writer: &mut W, value: DoubleTag) -> Result<()> {
     writer.write_all(&value.to_be_bytes())
 }
 
-fn write_byte_array<W: Write>(writer: &mut W, data: &ByteArrayTag) -> Result<()> {
-    write_int(writer, data.len() as i32)?;
-    for value in data {
-        write_byte(writer, *value)?;
+fn write_byte_array<W: Write>(writer: &mut W, value: &ByteArrayTag) -> Result<()> {
+    let length: IntTag = value.len() as i32;
+    write_int(writer, length)?;
+    for entry in value {
+        write_byte(writer, *entry)?;
     }
     Ok(())
 }
 
 fn write_string<W: Write>(writer: &mut W, value: &StringTag) -> Result<()> {
-    write_unsigned_short(writer, value.len() as u16)?;
-    writer.write_all(value.as_bytes())
+    let entry: &[u8] = value.as_bytes();
+    let length: u16 = value.len() as u16;
+    write_unsigned_short(writer, length)?;
+    writer.write_all(entry)
 }
 
-fn write_list<W: Write>(writer: &mut W, list: &ListTag<Tag>) -> Result<()> {
-    if let Some(first_item) = list.first() {
-        write_tag_id(writer, first_item.id())?;
-        write_int(writer, list.len() as i32)?;
-        for item in list {
-            write_tag(writer, item)?;
+fn write_list<W: Write>(writer: &mut W, value: &ListTag<Tag>) -> Result<()> {
+    if let Some(first_entry) = value.first() {
+        let tag_id: TagID = first_entry.id();
+        let length: IntTag = value.len() as i32;
+        write_tag_id(writer, tag_id)?;
+        write_int(writer, length)?;
+        for entry in value {
+            write_tag(writer, entry)?;
         }
     } else {
-        write_unsigned_byte(writer, 0)?; // Empty list type.
+        write_tag_id(writer, TagID::End)?; // Empty list type.
         write_int(writer, 0)?; // Empty list length.
     }
     Ok(())
 }
 
-fn write_compound<W: Write>(writer: &mut W, compound: &CompoundTag) -> Result<()> {
-    for (key, value) in compound {
-        write_tag_id(writer, value.id())?;
-        write_unsigned_short(writer, key.len() as u16)?;
-        writer.write_all(key.as_bytes())?;
-        write_tag(writer, value)?;
+fn write_compound<W: Write>(writer: &mut W, value: &CompoundTag) -> Result<()> {
+    for (name, entry) in value {
+        let tag_id: TagID = entry.id();
+        write_tag_id(writer, tag_id)?;
+        write_string(writer, name)?;
+        write_tag(writer, entry)?;
     }
-    write_unsigned_byte(writer, 0) // End tag for compound.
+    write_tag_id(writer, TagID::End) // End tag for compound.
 }
 
-fn write_int_array<W: Write>(writer: &mut W, data: &IntArrayTag) -> Result<()> {
-    write_int(writer, data.len() as i32)?;
-    for value in data {
-        write_int(writer, *value)?;
+fn write_int_array<W: Write>(writer: &mut W, value: &IntArrayTag) -> Result<()> {
+    let length: IntTag = value.len() as i32;
+    write_int(writer, length)?;
+    for entry in value {
+        write_int(writer, *entry)?;
     }
     Ok(())
 }
 
-fn write_long_array<W: Write>(writer: &mut W, data: &LongArrayTag) -> Result<()> {
-    write_int(writer, data.len() as i32)?;
-    for value in data {
-        write_long(writer, *value)?;
+fn write_long_array<W: Write>(writer: &mut W, value: &LongArrayTag) -> Result<()> {
+    let length: IntTag = value.len() as i32;
+    write_int(writer, length)?;
+    for entry in value {
+        write_long(writer, *entry)?;
     }
     Ok(())
 }

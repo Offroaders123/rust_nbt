@@ -88,11 +88,11 @@ fn read_double<R: Read>(reader: &mut R) -> Result<DoubleTag> {
 
 fn read_byte_array<R: Read>(reader: &mut R) -> Result<ByteArrayTag> {
     let length: usize = read_int(reader)? as usize;
-    let mut data: ByteArrayTag = Vec::with_capacity(length);
+    let mut value: ByteArrayTag = Vec::with_capacity(length);
     for _ in 0..length {
-        data.push(read_byte(reader)?);
+        value.push(read_byte(reader)?);
     }
-    Ok(data)
+    Ok(value)
 }
 
 fn read_string<R: Read>(reader: &mut R) -> Result<StringTag> {
@@ -103,47 +103,44 @@ fn read_string<R: Read>(reader: &mut R) -> Result<StringTag> {
 }
 
 fn read_list<R: Read>(reader: &mut R) -> Result<ListTag<Tag>> {
-    let item_type: TagID = read_tag_id(reader)?;
+    let tag_id: TagID = read_tag_id(reader)?;
     let length: usize = read_int(reader)? as usize;
-    let mut list: ListTag<Tag> = Vec::with_capacity(length);
+    let mut value: ListTag<Tag> = Vec::with_capacity(length);
     for _ in 0..length {
-        list.push(read_tag(reader, &item_type)?);
+        value.push(read_tag(reader, &tag_id)?);
     }
-    Ok(list)
+    Ok(value)
 }
 
 fn read_compound<R: Read>(reader: &mut R) -> Result<CompoundTag> {
-    let mut compound: CompoundTag = IndexMap::new();
+    let mut value: CompoundTag = IndexMap::new();
     loop {
-        let next_tag_id: TagID = read_tag_id(reader)?;
-        match next_tag_id {
+        let tag_id: TagID = read_tag_id(reader)?;
+        match tag_id {
             TagID::End => break,
             _ => (),
         }
-        let name_length: usize = read_unsigned_short(reader)? as usize;
-        let mut name_buffer: Vec<u8> = vec![0; name_length];
-        reader.read_exact(&mut name_buffer)?;
-        let name: String = String::from_utf8(name_buffer).unwrap();
-        let tag: Tag = read_tag(reader, &next_tag_id)?;
-        compound.insert(name, tag);
+        let name: String = read_string(reader)?;
+        let entry: Tag = read_tag(reader, &tag_id)?;
+        value.insert(name, entry);
     }
-    Ok(compound)
+    Ok(value)
 }
 
 fn read_int_array<R: Read>(reader: &mut R) -> Result<IntArrayTag> {
     let length: usize = read_int(reader)? as usize;
-    let mut data: Vec<i32> = Vec::with_capacity(length);
+    let mut value: IntArrayTag = Vec::with_capacity(length);
     for _ in 0..length {
-        data.push(read_int(reader)?);
+        value.push(read_int(reader)?);
     }
-    Ok(data)
+    Ok(value)
 }
 
 fn read_long_array<R: Read>(reader: &mut R) -> Result<LongArrayTag> {
     let length: usize = read_int(reader)? as usize;
-    let mut data: Vec<i64> = Vec::with_capacity(length);
+    let mut value: LongArrayTag = Vec::with_capacity(length);
     for _ in 0..length {
-        data.push(read_long(reader)?);
+        value.push(read_long(reader)?);
     }
-    Ok(data)
+    Ok(value)
 }
