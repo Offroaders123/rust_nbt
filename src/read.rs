@@ -1,5 +1,7 @@
-use crate::tag::Tag;
-use crate::{ByteArrayTag, CompoundTag, IntArrayTag, ListTag, LongArrayTag, StringTag};
+use crate::{
+    ByteArrayTag, ByteTag, CompoundTag, DoubleTag, FloatTag, IntArrayTag, IntTag, ListTag,
+    LongArrayTag, LongTag, ShortTag, StringTag, Tag,
+};
 use indexmap::IndexMap;
 use std::io::{Cursor, Error, ErrorKind, Read, Result};
 
@@ -42,7 +44,7 @@ fn read_unsigned_byte<R: Read>(reader: &mut R) -> Result<u8> {
     Ok(buffer[0])
 }
 
-fn read_byte<R: Read>(reader: &mut R) -> Result<i8> {
+fn read_byte<R: Read>(reader: &mut R) -> Result<ByteTag> {
     Ok(read_unsigned_byte(reader)? as i8)
 }
 
@@ -52,29 +54,29 @@ fn read_unsigned_short<R: Read>(reader: &mut R) -> Result<u16> {
     Ok(u16::from_be_bytes(buffer))
 }
 
-fn read_short<R: Read>(reader: &mut R) -> Result<i16> {
+fn read_short<R: Read>(reader: &mut R) -> Result<ShortTag> {
     Ok(read_unsigned_short(reader)? as i16)
 }
 
-fn read_int<R: Read>(reader: &mut R) -> Result<i32> {
+fn read_int<R: Read>(reader: &mut R) -> Result<IntTag> {
     let mut buffer: [u8; 4] = [0; 4];
     reader.read_exact(&mut buffer)?;
     Ok(i32::from_be_bytes(buffer))
 }
 
-fn read_long<R: Read>(reader: &mut R) -> Result<i64> {
+fn read_long<R: Read>(reader: &mut R) -> Result<LongTag> {
     let mut buffer: [u8; 8] = [0; 8];
     reader.read_exact(&mut buffer)?;
     Ok(i64::from_be_bytes(buffer))
 }
 
-fn read_float<R: Read>(reader: &mut R) -> Result<f32> {
+fn read_float<R: Read>(reader: &mut R) -> Result<FloatTag> {
     let mut buffer: [u8; 4] = [0; 4];
     reader.read_exact(&mut buffer)?;
     Ok(f32::from_be_bytes(buffer))
 }
 
-fn read_double<R: Read>(reader: &mut R) -> Result<f64> {
+fn read_double<R: Read>(reader: &mut R) -> Result<DoubleTag> {
     let mut buffer: [u8; 8] = [0; 8];
     reader.read_exact(&mut buffer)?;
     Ok(f64::from_be_bytes(buffer))

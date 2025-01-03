@@ -1,4 +1,7 @@
-use crate::{tag::Tag, ByteArrayTag, CompoundTag, IntArrayTag, ListTag, LongArrayTag, StringTag};
+use crate::{
+    ByteArrayTag, ByteTag, CompoundTag, DoubleTag, FloatTag, IntArrayTag, IntTag, ListTag,
+    LongArrayTag, LongTag, ShortTag, StringTag, Tag,
+};
 use std::io::{Cursor, Result, Write};
 
 /// Writes an NBT file to a byte vector, starting with the root compound tag.
@@ -35,7 +38,7 @@ fn write_unsigned_byte<W: Write>(writer: &mut W, value: u8) -> Result<()> {
     writer.write_all(&[value])
 }
 
-fn write_byte<W: Write>(writer: &mut W, value: i8) -> Result<()> {
+fn write_byte<W: Write>(writer: &mut W, value: ByteTag) -> Result<()> {
     write_unsigned_byte(writer, value as u8)
 }
 
@@ -43,23 +46,23 @@ fn write_unsigned_short<W: Write>(writer: &mut W, value: u16) -> Result<()> {
     writer.write_all(&value.to_be_bytes())
 }
 
-fn write_short<W: Write>(writer: &mut W, value: i16) -> Result<()> {
+fn write_short<W: Write>(writer: &mut W, value: ShortTag) -> Result<()> {
     write_unsigned_short(writer, value as u16)
 }
 
-fn write_int<W: Write>(writer: &mut W, value: i32) -> Result<()> {
+fn write_int<W: Write>(writer: &mut W, value: IntTag) -> Result<()> {
     writer.write_all(&value.to_be_bytes())
 }
 
-fn write_long<W: Write>(writer: &mut W, value: i64) -> Result<()> {
+fn write_long<W: Write>(writer: &mut W, value: LongTag) -> Result<()> {
     writer.write_all(&value.to_be_bytes())
 }
 
-fn write_float<W: Write>(writer: &mut W, value: f32) -> Result<()> {
+fn write_float<W: Write>(writer: &mut W, value: FloatTag) -> Result<()> {
     writer.write_all(&value.to_be_bytes())
 }
 
-fn write_double<W: Write>(writer: &mut W, value: f64) -> Result<()> {
+fn write_double<W: Write>(writer: &mut W, value: DoubleTag) -> Result<()> {
     writer.write_all(&value.to_be_bytes())
 }
 
