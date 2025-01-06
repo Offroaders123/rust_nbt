@@ -70,7 +70,7 @@ pub enum TagID {
 }
 
 impl TagID {
-    pub fn to_id(value: u8) -> Result<Self> {
+    pub fn try_from_u8(value: u8) -> Result<Self> {
         match value {
             0 => Ok(TagID::End),
             1 => Ok(TagID::Byte),

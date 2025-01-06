@@ -38,7 +38,7 @@ fn read_tag<R: Read>(reader: &mut R, tag_id: &TagID) -> Result<Tag> {
 
 fn read_tag_id<R: Read>(reader: &mut R) -> Result<TagID> {
     let value: u8 = read_unsigned_byte(reader)?;
-    TagID::to_id(value)
+    TagID::try_from_u8(value)
 }
 
 /// Helper functions to read various data types from a reader.
