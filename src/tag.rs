@@ -69,8 +69,10 @@ pub enum TagID {
     LongArray,
 }
 
-impl TagID {
-    pub fn try_from_u8(value: u8) -> Result<Self> {
+impl TryFrom<u8> for TagID {
+    type Error = Error;
+
+    fn try_from(value: u8) -> Result<Self> {
         match value {
             0 => Ok(TagID::End),
             1 => Ok(TagID::Byte),
