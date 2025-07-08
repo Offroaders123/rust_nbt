@@ -88,9 +88,9 @@ fn read_double<R: Read>(reader: &mut R) -> Result<DoubleTag> {
 
 fn read_byte_array<R: Read>(reader: &mut R) -> Result<ByteArrayTag> {
     let length: usize = read_int(reader)? as usize;
-    let mut value: ByteArrayTag = Vec::with_capacity(length);
+    let mut value: ByteArrayTag = ByteArrayTag(Vec::with_capacity(length));
     for _ in 0..length {
-        value.push(read_byte(reader)?);
+        value.0.push(read_byte(reader)?);
     }
     Ok(value)
 }
@@ -129,18 +129,18 @@ fn read_compound<R: Read>(reader: &mut R) -> Result<CompoundTag> {
 
 fn read_int_array<R: Read>(reader: &mut R) -> Result<IntArrayTag> {
     let length: usize = read_int(reader)? as usize;
-    let mut value: IntArrayTag = Vec::with_capacity(length);
+    let mut value: IntArrayTag = IntArrayTag(Vec::with_capacity(length));
     for _ in 0..length {
-        value.push(read_int(reader)?);
+        value.0.push(read_int(reader)?);
     }
     Ok(value)
 }
 
 fn read_long_array<R: Read>(reader: &mut R) -> Result<LongArrayTag> {
     let length: usize = read_int(reader)? as usize;
-    let mut value: LongArrayTag = Vec::with_capacity(length);
+    let mut value: LongArrayTag = LongArrayTag(Vec::with_capacity(length));
     for _ in 0..length {
-        value.push(read_long(reader)?);
+        value.0.push(read_long(reader)?);
     }
     Ok(value)
 }

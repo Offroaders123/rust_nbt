@@ -72,9 +72,9 @@ fn write_double<W: Write>(writer: &mut W, value: DoubleTag) -> Result<()> {
 }
 
 fn write_byte_array<W: Write>(writer: &mut W, value: &ByteArrayTag) -> Result<()> {
-    let length: IntTag = value.len() as i32;
+    let length: IntTag = value.0.len() as i32;
     write_int(writer, length)?;
-    for entry in value {
+    for entry in &value.0 {
         write_byte(writer, *entry)?;
     }
     Ok(())
@@ -114,18 +114,18 @@ fn write_compound<W: Write>(writer: &mut W, value: &CompoundTag) -> Result<()> {
 }
 
 fn write_int_array<W: Write>(writer: &mut W, value: &IntArrayTag) -> Result<()> {
-    let length: IntTag = value.len() as i32;
+    let length: IntTag = value.0.len() as i32;
     write_int(writer, length)?;
-    for entry in value {
+    for entry in &value.0 {
         write_int(writer, *entry)?;
     }
     Ok(())
 }
 
 fn write_long_array<W: Write>(writer: &mut W, value: &LongArrayTag) -> Result<()> {
-    let length: IntTag = value.len() as i32;
+    let length: IntTag = value.0.len() as i32;
     write_int(writer, length)?;
-    for entry in value {
+    for entry in &value.0 {
         write_long(writer, *entry)?;
     }
     Ok(())

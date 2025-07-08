@@ -46,12 +46,15 @@ pub type IntTag = i32;
 pub type LongTag = i64;
 pub type FloatTag = f32;
 pub type DoubleTag = f64;
-pub type ByteArrayTag = Vec<i8>;
+#[derive(Debug)]
+pub struct ByteArrayTag(pub Vec<i8>);
 pub type StringTag = String;
 pub type ListTag<T> = Vec<T>;
 pub type CompoundTag = IndexMap<String, Tag>;
-pub type IntArrayTag = Vec<i32>;
-pub type LongArrayTag = Vec<i64>;
+#[derive(Debug)]
+pub struct IntArrayTag(pub Vec<i32>);
+#[derive(Debug)]
+pub struct LongArrayTag(pub Vec<i64>);
 
 pub enum TagID {
     End = 0,
