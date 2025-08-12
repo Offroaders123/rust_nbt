@@ -17,7 +17,7 @@ pub fn write(tag: &Tag, root_name: &str) -> Result<Vec<u8>> {
 /// Writes a single NBT tag to the given writer.
 fn write_tag<W: Write>(writer: &mut W, tag: &Tag) -> Result<()> {
     match tag {
-        Tag::End => Ok(()), // End tag has no payload.
+        Tag::End(value) => Ok(*value), // End tag has no payload.
         Tag::Byte(value) => write_byte(writer, *value),
         Tag::Short(value) => write_short(writer, *value),
         Tag::Int(value) => write_int(writer, *value),

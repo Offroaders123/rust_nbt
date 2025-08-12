@@ -18,7 +18,7 @@ pub fn read_root(data: &[u8]) -> Result<Tag> {
 /// Reads a single NBT tag from the given reader.
 fn read_tag<R: Read>(reader: &mut R, tag_id: &TagID) -> Result<Tag> {
     match tag_id {
-        TagID::End => Ok(Tag::End),
+        TagID::End => Ok(Tag::End(())),
         TagID::Byte => Ok(Tag::Byte(read_byte(reader)?)),
         TagID::Short => Ok(Tag::Short(read_short(reader)?)),
         TagID::Int => Ok(Tag::Int(read_int(reader)?)),

@@ -21,7 +21,7 @@ pub struct LongArrayTag(pub Vec<i64>);
 #[repr(u8)]
 #[derive(Debug)]
 pub enum Tag {
-    End,
+    End(()),
     Byte(ByteTag),
     Short(ShortTag),
     Int(IntTag),
@@ -39,7 +39,7 @@ pub enum Tag {
 impl Tag {
     pub fn id(&self) -> TagID {
         match self {
-            Tag::End => TagID::End,
+            Tag::End(_) => TagID::End,
             Tag::Byte(_) => TagID::Byte,
             Tag::Short(_) => TagID::Short,
             Tag::Int(_) => TagID::Int,
