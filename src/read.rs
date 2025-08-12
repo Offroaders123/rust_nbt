@@ -2,6 +2,7 @@ use crate::{
     ByteArrayTag, ByteTag, CompoundTag, DoubleTag, FloatTag, IntArrayTag, IntTag, ListTag,
     LongArrayTag, LongTag, ShortTag, StringTag, Tag, TagID,
 };
+use byteorder::{BigEndian, ReadBytesExt};
 use indexmap::IndexMap;
 use std::io::{Cursor, Read, Result};
 
@@ -43,47 +44,35 @@ fn read_tag_id<R: Read>(reader: &mut R) -> Result<TagID> {
 
 /// Helper functions to read various data types from a reader.
 fn read_unsigned_byte<R: Read>(reader: &mut R) -> Result<u8> {
-    let mut buffer: [u8; 1] = [0; 1];
-    reader.read_exact(&mut buffer)?;
-    Ok(buffer[0])
+    reader.read_u8()
 }
 
 fn read_byte<R: Read>(reader: &mut R) -> Result<ByteTag> {
-    Ok(read_unsigned_byte(reader)? as i8)
+    reader.read_i8()
 }
 
 fn read_unsigned_short<R: Read>(reader: &mut R) -> Result<u16> {
-    let mut buffer: [u8; 2] = [0; 2];
-    reader.read_exact(&mut buffer)?;
-    Ok(u16::from_be_bytes(buffer))
+    reader.read_u16::<BigEndian>()
 }
 
 fn read_short<R: Read>(reader: &mut R) -> Result<ShortTag> {
-    Ok(read_unsigned_short(reader)? as i16)
+    reader.read_i16::<BigEndian>()
 }
 
 fn read_int<R: Read>(reader: &mut R) -> Result<IntTag> {
-    let mut buffer: [u8; 4] = [0; 4];
-    reader.read_exact(&mut buffer)?;
-    Ok(i32::from_be_bytes(buffer))
+    reader.read_i32::<BigEndian>()
 }
 
 fn read_long<R: Read>(reader: &mut R) -> Result<LongTag> {
-    let mut buffer: [u8; 8] = [0; 8];
-    reader.read_exact(&mut buffer)?;
-    Ok(i64::from_be_bytes(buffer))
+    reader.read_i64::<BigEndian>()
 }
 
 fn read_float<R: Read>(reader: &mut R) -> Result<FloatTag> {
-    let mut buffer: [u8; 4] = [0; 4];
-    reader.read_exact(&mut buffer)?;
-    Ok(f32::from_be_bytes(buffer))
+    reader.read_f32::<BigEndian>()
 }
 
 fn read_double<R: Read>(reader: &mut R) -> Result<DoubleTag> {
-    let mut buffer: [u8; 8] = [0; 8];
-    reader.read_exact(&mut buffer)?;
-    Ok(f64::from_be_bytes(buffer))
+    reader.read_f64::<BigEndian>()
 }
 
 fn read_byte_array<R: Read>(reader: &mut R) -> Result<ByteArrayTag> {
