@@ -1,6 +1,22 @@
 use indexmap::IndexMap;
 use std::io::{Error, ErrorKind, Result};
 
+pub type ByteTag = i8;
+pub type ShortTag = i16;
+pub type IntTag = i32;
+pub type LongTag = i64;
+pub type FloatTag = f32;
+pub type DoubleTag = f64;
+#[derive(Debug)]
+pub struct ByteArrayTag(pub Vec<i8>);
+pub type StringTag = String;
+pub type ListTag<T> = Vec<T>;
+pub type CompoundTag = IndexMap<String, Tag>;
+#[derive(Debug)]
+pub struct IntArrayTag(pub Vec<i32>);
+#[derive(Debug)]
+pub struct LongArrayTag(pub Vec<i64>);
+
 /// Represents an NBT tag type.
 #[repr(u8)]
 #[derive(Debug)]
@@ -39,22 +55,6 @@ impl Tag {
         }
     }
 }
-
-pub type ByteTag = i8;
-pub type ShortTag = i16;
-pub type IntTag = i32;
-pub type LongTag = i64;
-pub type FloatTag = f32;
-pub type DoubleTag = f64;
-#[derive(Debug)]
-pub struct ByteArrayTag(pub Vec<i8>);
-pub type StringTag = String;
-pub type ListTag<T> = Vec<T>;
-pub type CompoundTag = IndexMap<String, Tag>;
-#[derive(Debug)]
-pub struct IntArrayTag(pub Vec<i32>);
-#[derive(Debug)]
-pub struct LongArrayTag(pub Vec<i64>);
 
 pub enum TagID {
     End = 0,
