@@ -7,7 +7,7 @@ use indexmap::IndexMap;
 use std::io::{Cursor, Read, Result};
 
 /// Reads an NBT file from a byte vector and returns its root compound tag.
-pub fn read(data: &[u8]) -> Result<Tag> {
+pub fn read_root(data: &[u8]) -> Result<Tag> {
     let mut cursor: Cursor<&[u8]> = Cursor::new(&data);
     let root_tag_id: TagID = read_tag_id(&mut cursor)?;
     let root_name: String = read_string(&mut cursor)?;
