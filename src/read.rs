@@ -10,10 +10,7 @@ use std::io::{Cursor, Read, Result};
 pub fn read(data: &[u8]) -> Result<Tag> {
     let mut cursor: Cursor<&[u8]> = Cursor::new(&data);
     let root_tag_id: TagID = read_tag_id(&mut cursor)?;
-    let name_length: usize = read_unsigned_short(&mut cursor)? as usize;
-    let mut name_buffer: Vec<u8> = vec![0; name_length];
-    cursor.read_exact(&mut name_buffer)?;
-    let root_name: String = String::from_utf8(name_buffer).unwrap();
+    let root_name: String = read_string(&mut cursor)?;
     println!("{:?}", root_name);
     read_tag(&mut cursor, &root_tag_id)
 }

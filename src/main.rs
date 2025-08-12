@@ -12,7 +12,7 @@ fn main() -> Result<()> {
 
     // Example usage: Pass an NBT file's binary contents as a Vec<u8>
     let nbt_data: Tag = read(&nbt_bytes)?;
-    println!("{:#?}", nbt_data);
+    println!("{:?}", nbt_data);
 
     let recompile: Vec<u8> = write(&nbt_data, "Level")?;
     println!("{:?}", &recompile[0..10]);
