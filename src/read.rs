@@ -1,6 +1,6 @@
 use crate::{
     ByteArrayTag, ByteTag, CompoundTag, DoubleTag, FloatTag, IntArrayTag, IntTag, ListTag,
-    LongArrayTag, LongTag, ShortTag, StringTag, Tag, TagID, TagIDError,
+    LongArrayTag, LongTag, ShortTag, StringTag, Tag, TagIDError, TagId,
 };
 use byteorder::{BigEndian, ReadBytesExt};
 use indexmap::IndexMap;
@@ -37,34 +37,34 @@ impl From<ReadError> for io::Error {
 /// Reads an NBT file from a byte vector and returns its root compound tag.
 pub fn read_root(data: &[u8]) -> Result<Tag, ReadError> {
     let mut cursor: Cursor<&[u8]> = Cursor::new(&data);
-    let root_tag_id: TagID = read_tag_id(&mut cursor)?;
+    let root_tag_id: TagId = read_tag_id(&mut cursor)?;
     let root_name: String = read_string(&mut cursor)?;
     println!("{:?}", root_name);
     read_tag(&mut cursor, &root_tag_id)
 }
 
 /// Reads a single NBT tag from the given reader.
-fn read_tag<R: Read>(reader: &mut R, tag_id: &TagID) -> Result<Tag, ReadError> {
+fn read_tag<R: Read>(reader: &mut R, tag_id: &TagId) -> Result<Tag, ReadError> {
     match tag_id {
-        TagID::End => Ok(Tag::End(())),
-        TagID::Byte => Ok(Tag::Byte(read_byte(reader)?)),
-        TagID::Short => Ok(Tag::Short(read_short(reader)?)),
-        TagID::Int => Ok(Tag::Int(read_int(reader)?)),
-        TagID::Long => Ok(Tag::Long(read_long(reader)?)),
-        TagID::Float => Ok(Tag::Float(read_float(reader)?)),
-        TagID::Double => Ok(Tag::Double(read_double(reader)?)),
-        TagID::ByteArray => Ok(Tag::ByteArray(read_byte_array(reader)?)),
-        TagID::String => Ok(Tag::String(read_string(reader)?)),
-        TagID::List => Ok(Tag::List(read_list(reader)?)),
-        TagID::Compound => Ok(Tag::Compound(read_compound(reader)?)),
-        TagID::IntArray => Ok(Tag::IntArray(read_int_array(reader)?)),
-        TagID::LongArray => Ok(Tag::LongArray(read_long_array(reader)?)),
+        TagId::End => Ok(Tag::End(())),
+        TagId::Byte => Ok(Tag::Byte(read_byte(reader)?)),
+        TagId::Short => Ok(Tag::Short(read_short(reader)?)),
+        TagId::Int => Ok(Tag::Int(read_int(reader)?)),
+        TagId::Long => Ok(Tag::Long(read_long(reader)?)),
+        TagId::Float => Ok(Tag::Float(read_float(reader)?)),
+        TagId::Double => Ok(Tag::Double(read_double(reader)?)),
+        TagId::ByteArray => Ok(Tag::ByteArray(read_byte_array(reader)?)),
+        TagId::String => Ok(Tag::String(read_string(reader)?)),
+        TagId::List => Ok(Tag::List(read_list(reader)?)),
+        TagId::Compound => Ok(Tag::Compound(read_compound(reader)?)),
+        TagId::IntArray => Ok(Tag::IntArray(read_int_array(reader)?)),
+        TagId::LongArray => Ok(Tag::LongArray(read_long_array(reader)?)),
     }
 }
 
-fn read_tag_id<R: Read>(reader: &mut R) -> Result<TagID, ReadError> {
+fn read_tag_id<R: Read>(reader: &mut R) -> Result<TagId, ReadError> {
     let value: u8 = read_unsigned_byte(reader)?;
-    Ok(TagID::try_from(value)?)
+    Ok(TagId::try_from(value)?)
 }
 
 /// Helper functions to read various data types from a reader.
@@ -117,7 +117,7 @@ fn read_string<R: Read>(reader: &mut R) -> Result<StringTag, ReadError> {
 }
 
 fn read_list<R: Read>(reader: &mut R) -> Result<ListTag<Tag>, ReadError> {
-    let tag_id: TagID = read_tag_id(reader)?;
+    let tag_id: TagId = read_tag_id(reader)?;
     let length: usize = read_int(reader)? as usize;
     let mut value: ListTag<Tag> = Vec::with_capacity(length);
     for _ in 0..length {
@@ -129,9 +129,9 @@ fn read_list<R: Read>(reader: &mut R) -> Result<ListTag<Tag>, ReadError> {
 fn read_compound<R: Read>(reader: &mut R) -> Result<CompoundTag, ReadError> {
     let mut value: CompoundTag = IndexMap::new();
     loop {
-        let tag_id: TagID = read_tag_id(reader)?;
+        let tag_id: TagId = read_tag_id(reader)?;
         match tag_id {
-            TagID::End => break,
+            TagId::End => break,
             _ => (),
         }
         let name: String = read_string(reader)?;

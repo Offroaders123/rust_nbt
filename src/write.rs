@@ -1,6 +1,6 @@
 use crate::{
     ByteArrayTag, ByteTag, CompoundTag, DoubleTag, FloatTag, IntArrayTag, IntTag, ListTag,
-    LongArrayTag, LongTag, ShortTag, StringTag, Tag, TagID,
+    LongArrayTag, LongTag, ShortTag, StringTag, Tag, TagId,
 };
 use std::io::{Cursor, Result, Write};
 
@@ -33,7 +33,7 @@ fn write_tag<W: Write>(writer: &mut W, tag: &Tag) -> Result<()> {
     }
 }
 
-fn write_tag_id<W: Write>(writer: &mut W, tag_id: TagID) -> Result<()> {
+fn write_tag_id<W: Write>(writer: &mut W, tag_id: TagId) -> Result<()> {
     let value: u8 = tag_id as u8;
     write_unsigned_byte(writer, value)
 }
@@ -89,7 +89,7 @@ fn write_string<W: Write>(writer: &mut W, value: &StringTag) -> Result<()> {
 
 fn write_list<W: Write>(writer: &mut W, value: &ListTag<Tag>) -> Result<()> {
     if let Some(first_entry) = value.first() {
-        let tag_id: TagID = first_entry.id();
+        let tag_id: TagId = first_entry.id();
         let length: IntTag = value.len() as i32;
         write_tag_id(writer, tag_id)?;
         write_int(writer, length)?;
@@ -97,7 +97,7 @@ fn write_list<W: Write>(writer: &mut W, value: &ListTag<Tag>) -> Result<()> {
             write_tag(writer, entry)?;
         }
     } else {
-        write_tag_id(writer, TagID::End)?; // Empty list type.
+        write_tag_id(writer, TagId::End)?; // Empty list type.
         write_int(writer, 0)?; // Empty list length.
     }
     Ok(())
@@ -105,12 +105,12 @@ fn write_list<W: Write>(writer: &mut W, value: &ListTag<Tag>) -> Result<()> {
 
 fn write_compound<W: Write>(writer: &mut W, value: &CompoundTag) -> Result<()> {
     for (name, entry) in value {
-        let tag_id: TagID = entry.id();
+        let tag_id: TagId = entry.id();
         write_tag_id(writer, tag_id)?;
         write_string(writer, name)?;
         write_tag(writer, entry)?;
     }
-    write_tag_id(writer, TagID::End) // End tag for compound.
+    write_tag_id(writer, TagId::End) // End tag for compound.
 }
 
 fn write_int_array<W: Write>(writer: &mut W, value: &IntArrayTag) -> Result<()> {

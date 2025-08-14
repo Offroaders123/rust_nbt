@@ -36,26 +36,26 @@ pub enum Tag {
 }
 
 impl Tag {
-    pub fn id(&self) -> TagID {
+    pub fn id(&self) -> TagId {
         match self {
-            Tag::End(_) => TagID::End,
-            Tag::Byte(_) => TagID::Byte,
-            Tag::Short(_) => TagID::Short,
-            Tag::Int(_) => TagID::Int,
-            Tag::Long(_) => TagID::Long,
-            Tag::Float(_) => TagID::Float,
-            Tag::Double(_) => TagID::Double,
-            Tag::ByteArray(_) => TagID::ByteArray,
-            Tag::String(_) => TagID::String,
-            Tag::List(_) => TagID::List,
-            Tag::Compound(_) => TagID::Compound,
-            Tag::IntArray(_) => TagID::IntArray,
-            Tag::LongArray(_) => TagID::LongArray,
+            Tag::End(_) => TagId::End,
+            Tag::Byte(_) => TagId::Byte,
+            Tag::Short(_) => TagId::Short,
+            Tag::Int(_) => TagId::Int,
+            Tag::Long(_) => TagId::Long,
+            Tag::Float(_) => TagId::Float,
+            Tag::Double(_) => TagId::Double,
+            Tag::ByteArray(_) => TagId::ByteArray,
+            Tag::String(_) => TagId::String,
+            Tag::List(_) => TagId::List,
+            Tag::Compound(_) => TagId::Compound,
+            Tag::IntArray(_) => TagId::IntArray,
+            Tag::LongArray(_) => TagId::LongArray,
         }
     }
 }
 
-pub enum TagID {
+pub enum TagId {
     End = 0,
     Byte,
     Short,
@@ -76,24 +76,24 @@ pub enum TagIDError {
     UnknownType,
 }
 
-impl TryFrom<u8> for TagID {
+impl TryFrom<u8> for TagId {
     type Error = TagIDError;
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
-            0 => Ok(TagID::End),
-            1 => Ok(TagID::Byte),
-            2 => Ok(TagID::Short),
-            3 => Ok(TagID::Int),
-            4 => Ok(TagID::Long),
-            5 => Ok(TagID::Float),
-            6 => Ok(TagID::Double),
-            7 => Ok(TagID::ByteArray),
-            8 => Ok(TagID::String),
-            9 => Ok(TagID::List),
-            10 => Ok(TagID::Compound),
-            11 => Ok(TagID::IntArray),
-            12 => Ok(TagID::LongArray),
+            0 => Ok(TagId::End),
+            1 => Ok(TagId::Byte),
+            2 => Ok(TagId::Short),
+            3 => Ok(TagId::Int),
+            4 => Ok(TagId::Long),
+            5 => Ok(TagId::Float),
+            6 => Ok(TagId::Double),
+            7 => Ok(TagId::ByteArray),
+            8 => Ok(TagId::String),
+            9 => Ok(TagId::List),
+            10 => Ok(TagId::Compound),
+            11 => Ok(TagId::IntArray),
+            12 => Ok(TagId::LongArray),
             _ => Err(TagIDError::UnknownType),
         }
     }
