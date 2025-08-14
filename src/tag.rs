@@ -1,5 +1,4 @@
 use indexmap::IndexMap;
-use std::io::{Error, ErrorKind, Result};
 
 pub type ByteTag = i8;
 pub type ShortTag = i16;
@@ -72,10 +71,14 @@ pub enum TagID {
     LongArray,
 }
 
-impl TryFrom<u8> for TagID {
-    type Error = Error;
+pub enum TagIDError {
+    UnknownType,
+}
 
-    fn try_from(value: u8) -> Result<Self> {
+impl TryFrom<u8> for TagID {
+    type Error = TagIDError;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
             0 => Ok(TagID::End),
             1 => Ok(TagID::Byte),
@@ -90,7 +93,7 @@ impl TryFrom<u8> for TagID {
             10 => Ok(TagID::Compound),
             11 => Ok(TagID::IntArray),
             12 => Ok(TagID::LongArray),
-            _ => Err(Error::new(ErrorKind::InvalidData, "Unknown tag ID")),
+            _ => Err(TagIDError::UnknownType),
         }
     }
 }
