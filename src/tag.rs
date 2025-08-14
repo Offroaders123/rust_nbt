@@ -71,6 +71,7 @@ pub enum TagID {
     LongArray,
 }
 
+#[derive(Debug)]
 pub enum TagIDError {
     UnknownType,
 }
