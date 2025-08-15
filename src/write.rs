@@ -6,7 +6,7 @@ use byteorder::{ByteOrder, WriteBytesExt};
 use std::io::{Cursor, Result, Write};
 
 /// Writes an NBT file to a byte vector, starting with the root compound tag.
-pub fn write<E: ByteOrder>(tag: &Tag, root_name: &str) -> Result<Vec<u8>> {
+pub fn write_root<E: ByteOrder>(tag: &Tag, root_name: &str) -> Result<Vec<u8>> {
     let mut cursor: Cursor<Vec<u8>> = Cursor::new(Vec::new());
     write_tag_id(&mut cursor, tag.id())?;
     write_unsigned_short::<E>(&mut cursor, root_name.len() as u16)?;

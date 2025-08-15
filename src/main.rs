@@ -1,5 +1,5 @@
 use byteorder::BigEndian;
-use rust_nbt::{decompress, read_root, write, Tag};
+use rust_nbt::{decompress, read_root, write_root, Tag};
 use std::fs;
 use std::io::Result;
 
@@ -15,7 +15,7 @@ fn main() -> Result<()> {
     let nbt_data: Tag = read_root::<BigEndian>(&nbt_bytes)?;
     println!("{:?}", nbt_data);
 
-    let recompile: Vec<u8> = write::<BigEndian>(&nbt_data, "Level")?;
+    let recompile: Vec<u8> = write_root::<BigEndian>(&nbt_data, "Level")?;
     println!("{:?}", &recompile[0..10]);
 
     assert_eq!(&nbt_bytes, &recompile);
