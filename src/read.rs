@@ -2,7 +2,7 @@ use crate::{
     BedrockHeader, ByteArrayTag, ByteTag, CompoundTag, DoubleTag, FloatTag, IntArrayTag, IntTag,
     ListTag, LongArrayTag, LongTag, ShortTag, StringTag, Tag, TagIDError, TagId,
 };
-use byteorder::{ByteOrder, ReadBytesExt};
+use byteorder::{ByteOrder, LittleEndian, ReadBytesExt};
 use indexmap::IndexMap;
 use std::io::{self, Cursor, Read};
 
@@ -39,7 +39,7 @@ pub fn read_root<E: ByteOrder>(data: &[u8], header: BedrockHeader) -> Result<Tag
     let mut cursor: Cursor<&[u8]> = Cursor::new(&data);
     match header {
         BedrockHeader::With => {
-            let (storage_version, payload_len): (u32, u32) = read_bedrock_header::<E>(&mut cursor)?;
+            let (storage_version, payload_len): (u32, u32) = read_bedrock_header(&mut cursor)?;
             println!("{storage_version}, {payload_len}");
         }
         _ => (),
@@ -50,9 +50,9 @@ pub fn read_root<E: ByteOrder>(data: &[u8], header: BedrockHeader) -> Result<Tag
     read_tag::<E>(&mut cursor, &root_tag_id)
 }
 
-pub fn read_bedrock_header<E: ByteOrder>(reader: &mut impl Read) -> Result<(u32, u32), ReadError> {
-    let storage_version: u32 = reader.read_u32::<E>()?;
-    let payload_len: u32 = reader.read_u32::<E>()?;
+pub fn read_bedrock_header(reader: &mut impl Read) -> Result<(u32, u32), ReadError> {
+    let storage_version: u32 = reader.read_u32::<LittleEndian>()?;
+    let payload_len: u32 = reader.read_u32::<LittleEndian>()?;
     Ok((storage_version, payload_len))
 }
 
