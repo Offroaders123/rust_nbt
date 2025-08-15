@@ -44,7 +44,7 @@ pub fn read_root(data: &[u8]) -> Result<Tag, ReadError> {
 }
 
 /// Reads a single NBT tag from the given reader.
-fn read_tag<R: Read>(reader: &mut R, tag_id: &TagId) -> Result<Tag, ReadError> {
+fn read_tag(reader: &mut impl Read, tag_id: &TagId) -> Result<Tag, ReadError> {
     match tag_id {
         TagId::End => Err(ReadError::TagIDError(TagIDError::UnexpectedEnd)),
         TagId::Byte => Ok(Tag::Byte(read_byte(reader)?)),
@@ -62,45 +62,45 @@ fn read_tag<R: Read>(reader: &mut R, tag_id: &TagId) -> Result<Tag, ReadError> {
     }
 }
 
-fn read_tag_id<R: Read>(reader: &mut R) -> Result<TagId, ReadError> {
+fn read_tag_id(reader: &mut impl Read) -> Result<TagId, ReadError> {
     let value: u8 = read_unsigned_byte(reader)?;
     Ok(TagId::try_from(value)?)
 }
 
 /// Helper functions to read various data types from a reader.
-fn read_unsigned_byte<R: Read>(reader: &mut R) -> Result<u8, ReadError> {
+fn read_unsigned_byte(reader: &mut impl Read) -> Result<u8, ReadError> {
     Ok(reader.read_u8()?)
 }
 
-fn read_byte<R: Read>(reader: &mut R) -> Result<ByteTag, ReadError> {
+fn read_byte(reader: &mut impl Read) -> Result<ByteTag, ReadError> {
     Ok(reader.read_i8()?)
 }
 
-fn read_unsigned_short<R: Read>(reader: &mut R) -> Result<u16, ReadError> {
+fn read_unsigned_short(reader: &mut impl Read) -> Result<u16, ReadError> {
     Ok(reader.read_u16::<BigEndian>()?)
 }
 
-fn read_short<R: Read>(reader: &mut R) -> Result<ShortTag, ReadError> {
+fn read_short(reader: &mut impl Read) -> Result<ShortTag, ReadError> {
     Ok(reader.read_i16::<BigEndian>()?)
 }
 
-fn read_int<R: Read>(reader: &mut R) -> Result<IntTag, ReadError> {
+fn read_int(reader: &mut impl Read) -> Result<IntTag, ReadError> {
     Ok(reader.read_i32::<BigEndian>()?)
 }
 
-fn read_long<R: Read>(reader: &mut R) -> Result<LongTag, ReadError> {
+fn read_long(reader: &mut impl Read) -> Result<LongTag, ReadError> {
     Ok(reader.read_i64::<BigEndian>()?)
 }
 
-fn read_float<R: Read>(reader: &mut R) -> Result<FloatTag, ReadError> {
+fn read_float(reader: &mut impl Read) -> Result<FloatTag, ReadError> {
     Ok(reader.read_f32::<BigEndian>()?)
 }
 
-fn read_double<R: Read>(reader: &mut R) -> Result<DoubleTag, ReadError> {
+fn read_double(reader: &mut impl Read) -> Result<DoubleTag, ReadError> {
     Ok(reader.read_f64::<BigEndian>()?)
 }
 
-fn read_byte_array<R: Read>(reader: &mut R) -> Result<ByteArrayTag, ReadError> {
+fn read_byte_array(reader: &mut impl Read) -> Result<ByteArrayTag, ReadError> {
     let length: usize = read_int(reader)? as usize;
     let mut value: ByteArrayTag = ByteArrayTag(Vec::with_capacity(length));
     for _ in 0..length {
@@ -109,14 +109,14 @@ fn read_byte_array<R: Read>(reader: &mut R) -> Result<ByteArrayTag, ReadError> {
     Ok(value)
 }
 
-fn read_string<R: Read>(reader: &mut R) -> Result<StringTag, ReadError> {
+fn read_string(reader: &mut impl Read) -> Result<StringTag, ReadError> {
     let length: usize = read_unsigned_short(reader)? as usize;
     let mut buffer: Vec<u8> = vec![0; length];
     reader.read_exact(&mut buffer)?;
     Ok(String::from_utf8(buffer).unwrap())
 }
 
-fn read_list<R: Read>(reader: &mut R) -> Result<ListTag<Tag>, ReadError> {
+fn read_list(reader: &mut impl Read) -> Result<ListTag<Tag>, ReadError> {
     let tag_id: TagId = read_tag_id(reader)?;
     let length: usize = read_int(reader)? as usize;
     let mut value: ListTag<Tag> = Vec::with_capacity(length);
@@ -126,7 +126,7 @@ fn read_list<R: Read>(reader: &mut R) -> Result<ListTag<Tag>, ReadError> {
     Ok(value)
 }
 
-fn read_compound<R: Read>(reader: &mut R) -> Result<CompoundTag, ReadError> {
+fn read_compound(reader: &mut impl Read) -> Result<CompoundTag, ReadError> {
     let mut value: CompoundTag = IndexMap::new();
     loop {
         let tag_id: TagId = read_tag_id(reader)?;
@@ -141,7 +141,7 @@ fn read_compound<R: Read>(reader: &mut R) -> Result<CompoundTag, ReadError> {
     Ok(value)
 }
 
-fn read_int_array<R: Read>(reader: &mut R) -> Result<IntArrayTag, ReadError> {
+fn read_int_array(reader: &mut impl Read) -> Result<IntArrayTag, ReadError> {
     let length: usize = read_int(reader)? as usize;
     let mut value: IntArrayTag = IntArrayTag(Vec::with_capacity(length));
     for _ in 0..length {
@@ -150,7 +150,7 @@ fn read_int_array<R: Read>(reader: &mut R) -> Result<IntArrayTag, ReadError> {
     Ok(value)
 }
 
-fn read_long_array<R: Read>(reader: &mut R) -> Result<LongArrayTag, ReadError> {
+fn read_long_array(reader: &mut impl Read) -> Result<LongArrayTag, ReadError> {
     let length: usize = read_int(reader)? as usize;
     let mut value: LongArrayTag = LongArrayTag(Vec::with_capacity(length));
     for _ in 0..length {

@@ -16,7 +16,7 @@ pub fn write(tag: &Tag, root_name: &str) -> Result<Vec<u8>> {
 }
 
 /// Writes a single NBT tag to the given writer.
-fn write_tag<W: Write>(writer: &mut W, tag: &Tag) -> Result<()> {
+fn write_tag(writer: &mut impl Write, tag: &Tag) -> Result<()> {
     match tag {
         Tag::Byte(value) => write_byte(writer, *value),
         Tag::Short(value) => write_short(writer, *value),
@@ -33,45 +33,45 @@ fn write_tag<W: Write>(writer: &mut W, tag: &Tag) -> Result<()> {
     }
 }
 
-fn write_tag_id<W: Write>(writer: &mut W, tag_id: TagId) -> Result<()> {
+fn write_tag_id(writer: &mut impl Write, tag_id: TagId) -> Result<()> {
     let value: u8 = tag_id as u8;
     write_unsigned_byte(writer, value)
 }
 
 /// Helper functions to write various data types to a writer.
-fn write_unsigned_byte<W: Write>(writer: &mut W, value: u8) -> Result<()> {
+fn write_unsigned_byte(writer: &mut impl Write, value: u8) -> Result<()> {
     writer.write_u8(value)
 }
 
-fn write_byte<W: Write>(writer: &mut W, value: ByteTag) -> Result<()> {
+fn write_byte(writer: &mut impl Write, value: ByteTag) -> Result<()> {
     writer.write_i8(value)
 }
 
-fn write_unsigned_short<W: Write>(writer: &mut W, value: u16) -> Result<()> {
+fn write_unsigned_short(writer: &mut impl Write, value: u16) -> Result<()> {
     writer.write_u16::<BigEndian>(value)
 }
 
-fn write_short<W: Write>(writer: &mut W, value: ShortTag) -> Result<()> {
+fn write_short(writer: &mut impl Write, value: ShortTag) -> Result<()> {
     writer.write_i16::<BigEndian>(value)
 }
 
-fn write_int<W: Write>(writer: &mut W, value: IntTag) -> Result<()> {
+fn write_int(writer: &mut impl Write, value: IntTag) -> Result<()> {
     writer.write_i32::<BigEndian>(value)
 }
 
-fn write_long<W: Write>(writer: &mut W, value: LongTag) -> Result<()> {
+fn write_long(writer: &mut impl Write, value: LongTag) -> Result<()> {
     writer.write_i64::<BigEndian>(value)
 }
 
-fn write_float<W: Write>(writer: &mut W, value: FloatTag) -> Result<()> {
+fn write_float(writer: &mut impl Write, value: FloatTag) -> Result<()> {
     writer.write_f32::<BigEndian>(value)
 }
 
-fn write_double<W: Write>(writer: &mut W, value: DoubleTag) -> Result<()> {
+fn write_double(writer: &mut impl Write, value: DoubleTag) -> Result<()> {
     writer.write_f64::<BigEndian>(value)
 }
 
-fn write_byte_array<W: Write>(writer: &mut W, value: &ByteArrayTag) -> Result<()> {
+fn write_byte_array(writer: &mut impl Write, value: &ByteArrayTag) -> Result<()> {
     let length: IntTag = value.0.len() as i32;
     write_int(writer, length)?;
     for entry in &value.0 {
@@ -80,14 +80,14 @@ fn write_byte_array<W: Write>(writer: &mut W, value: &ByteArrayTag) -> Result<()
     Ok(())
 }
 
-fn write_string<W: Write>(writer: &mut W, value: &StringTag) -> Result<()> {
+fn write_string(writer: &mut impl Write, value: &StringTag) -> Result<()> {
     let entry: &[u8] = value.as_bytes();
     let length: u16 = value.len() as u16;
     write_unsigned_short(writer, length)?;
     writer.write_all(entry)
 }
 
-fn write_list<W: Write>(writer: &mut W, value: &ListTag<Tag>) -> Result<()> {
+fn write_list(writer: &mut impl Write, value: &ListTag<Tag>) -> Result<()> {
     if let Some(first_entry) = value.first() {
         let tag_id: TagId = first_entry.id();
         let length: IntTag = value.len() as i32;
@@ -103,7 +103,7 @@ fn write_list<W: Write>(writer: &mut W, value: &ListTag<Tag>) -> Result<()> {
     Ok(())
 }
 
-fn write_compound<W: Write>(writer: &mut W, value: &CompoundTag) -> Result<()> {
+fn write_compound(writer: &mut impl Write, value: &CompoundTag) -> Result<()> {
     for (name, entry) in value {
         let tag_id: TagId = entry.id();
         write_tag_id(writer, tag_id)?;
@@ -113,7 +113,7 @@ fn write_compound<W: Write>(writer: &mut W, value: &CompoundTag) -> Result<()> {
     write_tag_id(writer, TagId::End) // End tag for compound.
 }
 
-fn write_int_array<W: Write>(writer: &mut W, value: &IntArrayTag) -> Result<()> {
+fn write_int_array(writer: &mut impl Write, value: &IntArrayTag) -> Result<()> {
     let length: IntTag = value.0.len() as i32;
     write_int(writer, length)?;
     for entry in &value.0 {
@@ -122,7 +122,7 @@ fn write_int_array<W: Write>(writer: &mut W, value: &IntArrayTag) -> Result<()> 
     Ok(())
 }
 
-fn write_long_array<W: Write>(writer: &mut W, value: &LongArrayTag) -> Result<()> {
+fn write_long_array(writer: &mut impl Write, value: &LongArrayTag) -> Result<()> {
     let length: IntTag = value.0.len() as i32;
     write_int(writer, length)?;
     for entry in &value.0 {
