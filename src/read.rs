@@ -1,6 +1,6 @@
 use crate::{
-    ByteArrayTag, ByteTag, CompoundTag, DoubleTag, FloatTag, IntArrayTag, IntTag, ListTag,
-    LongArrayTag, LongTag, ShortTag, StringTag, Tag, TagIDError, TagId,
+    BedrockHeader, ByteArrayTag, ByteTag, CompoundTag, DoubleTag, FloatTag, IntArrayTag, IntTag,
+    ListTag, LongArrayTag, LongTag, ShortTag, StringTag, Tag, TagIDError, TagId,
 };
 use byteorder::{ByteOrder, ReadBytesExt};
 use indexmap::IndexMap;
@@ -35,12 +35,25 @@ impl From<ReadError> for io::Error {
 }
 
 /// Reads an NBT file from a byte vector and returns its root compound tag.
-pub fn read_root<E: ByteOrder>(data: &[u8]) -> Result<Tag, ReadError> {
+pub fn read_root<E: ByteOrder>(data: &[u8], header: BedrockHeader) -> Result<Tag, ReadError> {
     let mut cursor: Cursor<&[u8]> = Cursor::new(&data);
+    match header {
+        BedrockHeader::With => {
+            let (first, second): (u32, u32) = read_bedrock_header::<E>(&mut cursor)?;
+            println!("{first}, {second}");
+        }
+        _ => (),
+    }
     let root_tag_id: TagId = read_tag_id(&mut cursor)?;
     let root_name: String = read_string::<E>(&mut cursor)?;
     println!("{:?}", root_name);
     read_tag::<E>(&mut cursor, &root_tag_id)
+}
+
+pub fn read_bedrock_header<E: ByteOrder>(reader: &mut impl Read) -> Result<(u32, u32), ReadError> {
+    let first: u32 = reader.read_u32::<E>()?;
+    let second: u32 = reader.read_u32::<E>()?;
+    Ok((first, second))
 }
 
 /// Reads a single NBT tag from the given reader.
