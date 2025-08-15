@@ -2,6 +2,7 @@ use crate::{
     ByteArrayTag, ByteTag, CompoundTag, DoubleTag, FloatTag, IntArrayTag, IntTag, ListTag,
     LongArrayTag, LongTag, ShortTag, StringTag, Tag, TagId,
 };
+use byteorder::{BigEndian, WriteBytesExt};
 use std::io::{Cursor, Result, Write};
 
 /// Writes an NBT file to a byte vector, starting with the root compound tag.
@@ -39,35 +40,35 @@ fn write_tag_id<W: Write>(writer: &mut W, tag_id: TagId) -> Result<()> {
 
 /// Helper functions to write various data types to a writer.
 fn write_unsigned_byte<W: Write>(writer: &mut W, value: u8) -> Result<()> {
-    writer.write_all(&[value])
+    writer.write_u8(value)
 }
 
 fn write_byte<W: Write>(writer: &mut W, value: ByteTag) -> Result<()> {
-    write_unsigned_byte(writer, value as u8)
+    writer.write_i8(value)
 }
 
 fn write_unsigned_short<W: Write>(writer: &mut W, value: u16) -> Result<()> {
-    writer.write_all(&value.to_be_bytes())
+    writer.write_u16::<BigEndian>(value)
 }
 
 fn write_short<W: Write>(writer: &mut W, value: ShortTag) -> Result<()> {
-    write_unsigned_short(writer, value as u16)
+    writer.write_i16::<BigEndian>(value)
 }
 
 fn write_int<W: Write>(writer: &mut W, value: IntTag) -> Result<()> {
-    writer.write_all(&value.to_be_bytes())
+    writer.write_i32::<BigEndian>(value)
 }
 
 fn write_long<W: Write>(writer: &mut W, value: LongTag) -> Result<()> {
-    writer.write_all(&value.to_be_bytes())
+    writer.write_i64::<BigEndian>(value)
 }
 
 fn write_float<W: Write>(writer: &mut W, value: FloatTag) -> Result<()> {
-    writer.write_all(&value.to_be_bytes())
+    writer.write_f32::<BigEndian>(value)
 }
 
 fn write_double<W: Write>(writer: &mut W, value: DoubleTag) -> Result<()> {
-    writer.write_all(&value.to_be_bytes())
+    writer.write_f64::<BigEndian>(value)
 }
 
 fn write_byte_array<W: Write>(writer: &mut W, value: &ByteArrayTag) -> Result<()> {
