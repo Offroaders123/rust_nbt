@@ -1,12 +1,16 @@
 use crate::{
-    ByteArrayTag, ByteTag, CompoundTag, DoubleTag, FloatTag, IntArrayTag, IntTag, ListTag,
-    LongArrayTag, LongTag, ShortTag, Tag, TagId,
+    BedrockHeader, ByteArrayTag, ByteTag, CompoundTag, DoubleTag, FloatTag, IntArrayTag, IntTag,
+    ListTag, LongArrayTag, LongTag, ShortTag, Tag, TagId,
 };
 use byteorder::{ByteOrder, WriteBytesExt};
 use std::io::{self, Cursor, Write};
 
+#[derive(Debug)]
 pub enum WriteError {
     IoError(io::Error),
+    ExpectedInt,
+    ExpectedCompound,
+    ExpectedStorageVersion,
 }
 
 impl From<io::Error> for WriteError {
@@ -19,17 +23,56 @@ impl From<WriteError> for io::Error {
     fn from(value: WriteError) -> Self {
         match value {
             WriteError::IoError(e) => e,
+            e => io::Error::new(io::ErrorKind::InvalidData, format!("{:?}", e)),
         }
     }
 }
 
 /// Writes an NBT file to a byte vector, starting with the root compound tag.
-pub fn write_root<E: ByteOrder>(tag: &Tag, root_name: &str) -> Result<Vec<u8>, WriteError> {
+pub fn write_root<E: ByteOrder>(
+    tag: &Tag,
+    root_name: &str,
+    header: BedrockHeader,
+) -> Result<Vec<u8>, WriteError> {
     let mut cursor: Cursor<Vec<u8>> = Cursor::new(Vec::new());
     write_tag_id(&mut cursor, tag.id())?;
     write_string::<E>(&mut cursor, root_name)?;
     write_tag::<E>(&mut cursor, tag)?;
+    match header {
+        BedrockHeader::With => {
+            let payload_len: i32 = cursor.get_ref().len() as i32;
+            write_bedrock_header::<E>(tag, &mut cursor, payload_len)?
+        }
+        _ => (),
+    }
     Ok(cursor.into_inner())
+}
+
+fn write_bedrock_header<E: ByteOrder>(
+    data: &Tag,
+    writer: &mut impl Write,
+    payload_len: i32,
+) -> Result<(), WriteError> {
+    let storage_version: i32 = get_storage_version(data)?;
+    writer.write_u32::<E>(storage_version as u32)?;
+    writer.write_u32::<E>(payload_len as u32)?;
+    Ok(())
+}
+
+fn get_storage_version(data: &Tag) -> Result<i32, WriteError> {
+    match data {
+        Tag::Compound(tag) => {
+            let storage_version: i32 = match tag
+                .get("StorageVersion")
+                .ok_or(WriteError::ExpectedStorageVersion)?
+            {
+                Tag::Int(v) => Ok(*v),
+                _ => Err(WriteError::ExpectedInt),
+            }?;
+            Ok(storage_version)
+        }
+        _ => Err(WriteError::ExpectedCompound),
+    }
 }
 
 /// Writes a single NBT tag to the given writer.

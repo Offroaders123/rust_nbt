@@ -1,5 +1,5 @@
 use byteorder::LittleEndian;
-use rust_nbt::{decompress, read_root, write_root, CompressionFormat, Tag};
+use rust_nbt::{decompress, read_root, write_root, BedrockHeader, CompressionFormat, Tag};
 use std::{fs::read, io::Result};
 
 fn main() -> Result<()> {
@@ -14,7 +14,7 @@ fn main() -> Result<()> {
     let nbt_data: Tag = read_root::<LittleEndian>(&nbt_bytes, rust_nbt::BedrockHeader::With)?;
     println!("{:?}", nbt_data);
 
-    let recompile: Vec<u8> = write_root::<LittleEndian>(&nbt_data, "Level")?;
+    let recompile: Vec<u8> = write_root::<LittleEndian>(&nbt_data, "Level", BedrockHeader::With)?;
     println!("{:?}", &recompile[0..10]);
 
     assert_eq!(&nbt_bytes, &recompile);
