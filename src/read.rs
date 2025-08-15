@@ -39,8 +39,8 @@ pub fn read_root<E: ByteOrder>(data: &[u8], header: BedrockHeader) -> Result<Tag
     let mut cursor: Cursor<&[u8]> = Cursor::new(&data);
     match header {
         BedrockHeader::With => {
-            let (first, second): (u32, u32) = read_bedrock_header::<E>(&mut cursor)?;
-            println!("{first}, {second}");
+            let (storage_version, payload_len): (u32, u32) = read_bedrock_header::<E>(&mut cursor)?;
+            println!("{storage_version}, {payload_len}");
         }
         _ => (),
     }
@@ -51,9 +51,9 @@ pub fn read_root<E: ByteOrder>(data: &[u8], header: BedrockHeader) -> Result<Tag
 }
 
 pub fn read_bedrock_header<E: ByteOrder>(reader: &mut impl Read) -> Result<(u32, u32), ReadError> {
-    let first: u32 = reader.read_u32::<E>()?;
-    let second: u32 = reader.read_u32::<E>()?;
-    Ok((first, second))
+    let storage_version: u32 = reader.read_u32::<E>()?;
+    let payload_len: u32 = reader.read_u32::<E>()?;
+    Ok((storage_version, payload_len))
 }
 
 /// Reads a single NBT tag from the given reader.
