@@ -2,8 +2,8 @@ use crate::{
     BedrockHeader, ByteArrayTag, ByteTag, CompoundTag, DoubleTag, FloatTag, IntArrayTag, IntTag,
     ListTag, LongArrayTag, LongTag, ShortTag, Tag, TagId,
 };
-use byteorder::{ByteOrder, WriteBytesExt};
-use std::io::{self, Cursor, Write};
+use byteorder::{ByteOrder, LittleEndian, WriteBytesExt};
+use std::io::{self, Cursor, Seek, SeekFrom, Write};
 
 #[derive(Debug)]
 pub enum WriteError {
@@ -35,27 +35,38 @@ pub fn write_root<E: ByteOrder>(
     header: BedrockHeader,
 ) -> Result<Vec<u8>, WriteError> {
     let mut cursor: Cursor<Vec<u8>> = Cursor::new(Vec::new());
+
+    // If we’ll write a header, reserve 8 bytes (two u32s) at the start
+    let header_bytes: usize = 8usize;
+    let wrote_header: bool = matches!(header, BedrockHeader::With);
+    if wrote_header {
+        cursor.write_all(&[0u8; 8])?; // placeholders
+    }
+
+    // Write the payload after the (possible) header space
     write_tag_id(&mut cursor, tag.id())?;
     write_string::<E>(&mut cursor, root_name)?;
     write_tag::<E>(&mut cursor, tag)?;
     match header {
         BedrockHeader::With => {
-            let payload_len: i32 = cursor.get_ref().len() as i32;
-            write_bedrock_header::<E>(tag, &mut cursor, payload_len)?
+            let total_len: usize = cursor.get_ref().len();
+            let payload_len: i32 = (total_len - header_bytes) as i32;
+            cursor.seek(SeekFrom::Start(0))?;
+            write_bedrock_header(tag, &mut cursor, payload_len)?
         }
         _ => (),
     }
     Ok(cursor.into_inner())
 }
 
-fn write_bedrock_header<E: ByteOrder>(
+fn write_bedrock_header(
     data: &Tag,
     writer: &mut impl Write,
     payload_len: i32,
 ) -> Result<(), WriteError> {
     let storage_version: i32 = get_storage_version(data)?;
-    writer.write_u32::<E>(storage_version as u32)?;
-    writer.write_u32::<E>(payload_len as u32)?;
+    writer.write_u32::<LittleEndian>(storage_version as u32)?;
+    writer.write_u32::<LittleEndian>(payload_len as u32)?;
     Ok(())
 }
 
