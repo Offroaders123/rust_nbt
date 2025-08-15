@@ -46,7 +46,7 @@ pub fn read_root(data: &[u8]) -> Result<Tag, ReadError> {
 /// Reads a single NBT tag from the given reader.
 fn read_tag<R: Read>(reader: &mut R, tag_id: &TagId) -> Result<Tag, ReadError> {
     match tag_id {
-        TagId::End => Ok(Tag::End(())),
+        TagId::End => Err(ReadError::TagIDError(TagIDError::UnexpectedEnd)),
         TagId::Byte => Ok(Tag::Byte(read_byte(reader)?)),
         TagId::Short => Ok(Tag::Short(read_short(reader)?)),
         TagId::Int => Ok(Tag::Int(read_int(reader)?)),

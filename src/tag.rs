@@ -20,7 +20,6 @@ pub struct LongArrayTag(pub Vec<i64>);
 #[repr(u8)]
 #[derive(Debug)]
 pub enum Tag {
-    End(()),
     Byte(ByteTag),
     Short(ShortTag),
     Int(IntTag),
@@ -38,7 +37,6 @@ pub enum Tag {
 impl Tag {
     pub fn id(&self) -> TagId {
         match self {
-            Tag::End(_) => TagId::End,
             Tag::Byte(_) => TagId::Byte,
             Tag::Short(_) => TagId::Short,
             Tag::Int(_) => TagId::Int,
@@ -73,6 +71,7 @@ pub enum TagId {
 
 #[derive(Debug)]
 pub enum TagIDError {
+    UnexpectedEnd,
     UnknownType,
 }
 
