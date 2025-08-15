@@ -2,7 +2,7 @@ use crate::{
     ByteArrayTag, ByteTag, CompoundTag, DoubleTag, FloatTag, IntArrayTag, IntTag, ListTag,
     LongArrayTag, LongTag, ShortTag, StringTag, Tag, TagIDError, TagId,
 };
-use byteorder::{LittleEndian, ReadBytesExt};
+use byteorder::{BigEndian, ReadBytesExt};
 use indexmap::IndexMap;
 use std::io::{self, Cursor, Read};
 
@@ -77,27 +77,27 @@ fn read_byte<R: Read>(reader: &mut R) -> Result<ByteTag, ReadError> {
 }
 
 fn read_unsigned_short<R: Read>(reader: &mut R) -> Result<u16, ReadError> {
-    Ok(reader.read_u16::<LittleEndian>()?)
+    Ok(reader.read_u16::<BigEndian>()?)
 }
 
 fn read_short<R: Read>(reader: &mut R) -> Result<ShortTag, ReadError> {
-    Ok(reader.read_i16::<LittleEndian>()?)
+    Ok(reader.read_i16::<BigEndian>()?)
 }
 
 fn read_int<R: Read>(reader: &mut R) -> Result<IntTag, ReadError> {
-    Ok(reader.read_i32::<LittleEndian>()?)
+    Ok(reader.read_i32::<BigEndian>()?)
 }
 
 fn read_long<R: Read>(reader: &mut R) -> Result<LongTag, ReadError> {
-    Ok(reader.read_i64::<LittleEndian>()?)
+    Ok(reader.read_i64::<BigEndian>()?)
 }
 
 fn read_float<R: Read>(reader: &mut R) -> Result<FloatTag, ReadError> {
-    Ok(reader.read_f32::<LittleEndian>()?)
+    Ok(reader.read_f32::<BigEndian>()?)
 }
 
 fn read_double<R: Read>(reader: &mut R) -> Result<DoubleTag, ReadError> {
-    Ok(reader.read_f64::<LittleEndian>()?)
+    Ok(reader.read_f64::<BigEndian>()?)
 }
 
 fn read_byte_array<R: Read>(reader: &mut R) -> Result<ByteArrayTag, ReadError> {

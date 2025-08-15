@@ -3,7 +3,7 @@ use std::fs;
 use std::io::Result;
 
 fn main() -> Result<()> {
-    let file: &str = "./test/bigtest_little.nbt";
+    let file: &str = "./test/bigtest.nbt";
     println!("{}", file);
 
     let nbt_bytes: Vec<u8> =
