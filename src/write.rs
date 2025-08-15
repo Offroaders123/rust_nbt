@@ -47,14 +47,11 @@ pub fn write_root<E: ByteOrder>(
     write_tag_id(&mut cursor, tag.id())?;
     write_string::<E>(&mut cursor, root_name)?;
     write_tag::<E>(&mut cursor, tag)?;
-    match header {
-        BedrockHeader::With => {
-            let total_len: usize = cursor.get_ref().len();
-            let payload_len: i32 = (total_len - header_bytes) as i32;
-            cursor.seek(SeekFrom::Start(0))?;
-            write_bedrock_header(tag, &mut cursor, payload_len)?
-        }
-        _ => (),
+    if matches!(header, BedrockHeader::With) {
+        let total_len: usize = cursor.get_ref().len();
+        let payload_len: i32 = (total_len - header_bytes) as i32;
+        cursor.seek(SeekFrom::Start(0))?;
+        write_bedrock_header(tag, &mut cursor, payload_len)?
     }
     Ok(cursor.into_inner())
 }

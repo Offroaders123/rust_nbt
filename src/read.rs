@@ -37,12 +37,9 @@ impl From<ReadError> for io::Error {
 /// Reads an NBT file from a byte vector and returns its root compound tag.
 pub fn read_root<E: ByteOrder>(data: &[u8], header: BedrockHeader) -> Result<Tag, ReadError> {
     let mut cursor: Cursor<&[u8]> = Cursor::new(&data);
-    match header {
-        BedrockHeader::With => {
-            let (storage_version, payload_len): (u32, u32) = read_bedrock_header(&mut cursor)?;
-            println!("{storage_version}, {payload_len}");
-        }
-        _ => (),
+    if matches!(header, BedrockHeader::With) {
+        let (storage_version, payload_len): (u32, u32) = read_bedrock_header(&mut cursor)?;
+        println!("{storage_version}, {payload_len}");
     }
     let root_tag_id: TagId = read_tag_id(&mut cursor)?;
     let root_name: String = read_string::<E>(&mut cursor)?;
@@ -143,9 +140,8 @@ fn read_compound<E: ByteOrder>(reader: &mut impl Read) -> Result<CompoundTag, Re
     let mut value: CompoundTag = IndexMap::new();
     loop {
         let tag_id: TagId = read_tag_id(reader)?;
-        match tag_id {
-            TagId::End => break,
-            _ => (),
+        if matches!(tag_id, TagId::End) {
+            break;
         }
         let name: String = read_string::<E>(reader)?;
         let entry: Tag = read_tag::<E>(reader, &tag_id)?;
