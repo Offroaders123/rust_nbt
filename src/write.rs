@@ -1,6 +1,6 @@
 use crate::{
     ByteArrayTag, ByteTag, CompoundTag, DoubleTag, FloatTag, IntArrayTag, IntTag, ListTag,
-    LongArrayTag, LongTag, ShortTag, StringTag, Tag, TagId,
+    LongArrayTag, LongTag, ShortTag, Tag, TagId,
 };
 use byteorder::{ByteOrder, WriteBytesExt};
 use std::io::{Cursor, Result, Write};
@@ -9,8 +9,7 @@ use std::io::{Cursor, Result, Write};
 pub fn write_root<E: ByteOrder>(tag: &Tag, root_name: &str) -> Result<Vec<u8>> {
     let mut cursor: Cursor<Vec<u8>> = Cursor::new(Vec::new());
     write_tag_id(&mut cursor, tag.id())?;
-    write_unsigned_short::<E>(&mut cursor, root_name.len() as u16)?;
-    cursor.write_all(root_name.as_bytes())?;
+    write_string::<E>(&mut cursor, root_name)?;
     write_tag::<E>(&mut cursor, tag)?;
     Ok(cursor.into_inner())
 }
@@ -80,7 +79,7 @@ fn write_byte_array<E: ByteOrder>(writer: &mut impl Write, value: &ByteArrayTag)
     Ok(())
 }
 
-fn write_string<E: ByteOrder>(writer: &mut impl Write, value: &StringTag) -> Result<()> {
+fn write_string<E: ByteOrder>(writer: &mut impl Write, value: &str) -> Result<()> {
     let entry: &[u8] = value.as_bytes();
     let length: u16 = value.len() as u16;
     write_unsigned_short::<E>(writer, length)?;
