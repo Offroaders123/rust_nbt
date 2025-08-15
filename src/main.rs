@@ -1,14 +1,12 @@
 use byteorder::LittleEndian;
-use rust_nbt::{decompress, read_root, write_root, Tag};
-use std::fs;
-use std::io::Result;
+use rust_nbt::{decompress, read_root, write_root, CompressionFormat, Tag};
+use std::{fs::read, io::Result};
 
 fn main() -> Result<()> {
     let file: &str = "./test/bigtest_little.nbt";
     println!("{}", file);
 
-    let nbt_bytes: Vec<u8> =
-        decompress(&fs::read(file).unwrap(), rust_nbt::CompressionFormat::Gzip)?;
+    let nbt_bytes: Vec<u8> = decompress(&read(file).unwrap(), CompressionFormat::Gzip)?;
     println!("{:?}", &nbt_bytes[0..10]);
 
     // Example usage: Pass an NBT file's binary contents as a Vec<u8>
