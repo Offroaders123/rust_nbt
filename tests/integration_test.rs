@@ -24,7 +24,7 @@ fn symmetrical_nbt_be() -> Result<()> {
 }
 
 #[test]
-fn symmetrical_nbt_le() -> Result<()> {
+fn symmetrical_nbt_le_bedrock_header() -> Result<()> {
     let file: &str = "./tests/level.dat";
     println!("{}", file);
 
