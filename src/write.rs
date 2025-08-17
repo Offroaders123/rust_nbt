@@ -32,7 +32,7 @@ impl From<WriteError> for io::Error {
 pub fn write_root<E: ByteOrder>(
     tag: &Tag,
     root_name: &str,
-    header: BedrockHeader,
+    header: &BedrockHeader,
 ) -> Result<Vec<u8>, WriteError> {
     let mut cursor: Cursor<Vec<u8>> = Cursor::new(Vec::new());
 

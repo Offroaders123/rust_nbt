@@ -35,7 +35,7 @@ impl From<ReadError> for io::Error {
 }
 
 /// Reads an NBT file from a byte vector and returns its root compound tag.
-pub fn read_root<E: ByteOrder>(data: &[u8], header: BedrockHeader) -> Result<Tag, ReadError> {
+pub fn read_root<E: ByteOrder>(data: &[u8], header: &BedrockHeader) -> Result<Tag, ReadError> {
     let mut cursor: Cursor<&[u8]> = Cursor::new(&data);
     if matches!(header, BedrockHeader::With) {
         let (storage_version, payload_len): (u32, u32) = read_bedrock_header(&mut cursor)?;
