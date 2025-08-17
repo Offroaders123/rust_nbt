@@ -3,7 +3,7 @@ use rust_nbt::{decompress, read_root, write_root, BedrockHeader, CompressionForm
 use std::{fs::read, io::Result};
 
 fn main() -> Result<()> {
-    let file: &str = "./test/level.dat";
+    let file: &str = "./tests/level.dat";
     println!("{}", file);
 
     let nbt_bytes: Vec<u8> = read(file).unwrap().to_owned();
