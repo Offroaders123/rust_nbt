@@ -3,7 +3,7 @@ use rust_nbt::{decompress, read_root, write_root, BedrockHeader, CompressionForm
 use std::{fs::read, io::Result};
 
 #[test]
-fn symmetrical_nbt() -> Result<()> {
+fn symmetrical_nbt_le() -> Result<()> {
     let file: &str = "./tests/level.dat";
     println!("{}", file);
 
