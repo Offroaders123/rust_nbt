@@ -1,1 +1,1 @@
-cargo watch -c -q -x "run -q"
+cargo test symmetrical_nbt -- --nocapture

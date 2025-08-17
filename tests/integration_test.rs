@@ -2,7 +2,8 @@ use byteorder::LittleEndian;
 use rust_nbt::{decompress, read_root, write_root, BedrockHeader, CompressionFormat, Tag};
 use std::{fs::read, io::Result};
 
-fn main() -> Result<()> {
+#[test]
+fn symmetrical_nbt() -> Result<()> {
     let file: &str = "./tests/level.dat";
     println!("{}", file);
 
