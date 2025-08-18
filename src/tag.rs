@@ -1,4 +1,5 @@
 use indexmap::IndexMap;
+use serde::{Deserialize, Serialize};
 
 pub type ByteTag = i8;
 pub type ShortTag = i16;
@@ -6,19 +7,19 @@ pub type IntTag = i32;
 pub type LongTag = i64;
 pub type FloatTag = f32;
 pub type DoubleTag = f64;
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ByteArrayTag(pub Vec<i8>);
 pub type StringTag = String;
 pub type ListTag<T> = Vec<T>;
 pub type CompoundTag = IndexMap<String, Tag>;
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct IntArrayTag(pub Vec<i32>);
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct LongArrayTag(pub Vec<i64>);
 
 /// Represents an NBT tag type.
 #[repr(u8)]
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum Tag {
     Byte(ByteTag),
     Short(ShortTag),
@@ -69,7 +70,7 @@ pub enum TagId {
     LongArray,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum TagIDError {
     UnexpectedEnd,
     UnknownType,
