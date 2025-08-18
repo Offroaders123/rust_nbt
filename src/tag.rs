@@ -2,6 +2,7 @@ use indexmap::IndexMap;
 use serde::{
     de::{self, Deserializer, IntoDeserializer, MapAccess, Visitor},
     forward_to_deserialize_any,
+    ser::{self, Serialize, SerializeStruct, Serializer},
 };
 
 pub type ByteTag = i8;
@@ -153,6 +154,91 @@ impl<'de> Deserializer<'de> for Tag {
         newtype_struct seq tuple tuple_struct map struct enum identifier ignored_any
     }
 }
+
+impl Serializer for Tag {
+    type Ok = Tag;
+    type Error = ser::Error;
+
+    type SerializeSeq = Impossible;
+    type SerializeTuple = Impossible;
+    type SerializeTupleStruct = Impossible;
+    type SerializeTupleVariant = Impossible;
+    type SerializeMap = CompoundSerializer;
+    type SerializeStruct = CompoundSerializer;
+    type SerializeStructVariant = Impossible;
+
+    fn serialize_i8(self, v: i8) -> Result<Self::Ok, Self::Error> {
+        Ok(Tag::Byte(v))
+    }
+
+    fn serialize_str(self, v: &str) -> Result<Self::Ok, Self::Error> {
+        Ok(Tag::String(v.to_string()))
+    }
+
+    fn serialize_string(self, v: String) -> Result<Self::Ok, Self::Error> {
+        Ok(Tag::String(v))
+    }
+
+    fn serialize_struct(
+        self,
+        _name: &'static str,
+        _len: usize,
+    ) -> Result<Self::SerializeStruct, Self::Error> {
+        Ok(CompoundSerializer {
+            map: IndexMap::new(),
+        })
+    }
+
+    // Forward everything else for now
+    forward_to_serializer! {
+        bool i16 i32 i64 u8 u16 u32 u64 f32 f64 char bytes byte_buf none some unit
+        unit_struct newtype_struct seq tuple tuple_struct map
+        struct_variant tuple_variant enum identifier
+    }
+}
+
+// Helper for building compound tags
+pub struct CompoundSerializer {
+    map: IndexMap<String, Tag>,
+}
+
+impl SerializeStruct for CompoundSerializer {
+    type Ok = Tag;
+    type Error = ser::Error;
+
+    fn serialize_field<T>(&mut self, key: &'static str, value: &T) -> Result<(), Self::Error>
+    where
+        T: ?Sized + Serialize,
+    {
+        // Each value is serialized into a Tag using a fresh serializer
+        let tag = value.serialize(Tag::String("".to_string()))?; // just pass a dummy
+        self.map.insert(key.to_string(), tag);
+        Ok(())
+    }
+
+    fn end(self) -> Result<Self::Ok, Self::Error> {
+        Ok(Tag::Compound(self.map))
+    }
+}
+
+// Dummy type so we can say “not supported” easily
+pub struct Impossible;
+
+impl ser::SerializeSeq for Impossible {
+    type Ok = Tag;
+    type Error = ser::Error;
+    fn serialize_element<T>(&mut self, _: &T) -> Result<(), Self::Error>
+    where
+        T: ?Sized + Serialize,
+    {
+        unreachable!()
+    }
+    fn end(self) -> Result<Self::Ok, Self::Error> {
+        unreachable!()
+    }
+}
+
+// You’d also implement SerializeMap, SerializeSeq, etc. for lists, arrays, etc.
 
 pub enum TagId {
     End = 0,
