@@ -1,4 +1,8 @@
 use indexmap::IndexMap;
+use serde::{
+    de::{self, Deserializer, IntoDeserializer, MapAccess, Visitor},
+    forward_to_deserialize_any,
+};
 
 pub type ByteTag = i8;
 pub type ShortTag = i16;
@@ -50,6 +54,103 @@ impl Tag {
             Tag::IntArray(_) => TagId::IntArray,
             Tag::LongArray(_) => TagId::LongArray,
         }
+    }
+}
+
+impl<'de> Deserializer<'de> for Tag {
+    type Error = de::value::Error;
+
+    fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+    where
+        V: Visitor<'de>,
+    {
+        match self {
+            Tag::Byte(b) => visitor.visit_i8(b),
+            Tag::String(s) => visitor.visit_string(s),
+            Tag::Compound(map) => {
+                // Tell Serde "this is a map-like structure"
+                struct CompoundAccess {
+                    iter: indexmap::map::IntoIter<String, Tag>,
+                    value: Option<Tag>,
+                }
+
+                impl<'de> MapAccess<'de> for CompoundAccess {
+                    type Error = de::value::Error;
+
+                    fn next_key_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>, Self::Error>
+                    where
+                        K: de::DeserializeSeed<'de>,
+                    {
+                        if let Some((k, v)) = self.iter.next() {
+                            self.value = Some(v);
+                            seed.deserialize(k.into_deserializer()).map(Some)
+                        } else {
+                            Ok(None)
+                        }
+                    }
+
+                    fn next_value_seed<V>(&mut self, seed: V) -> Result<V::Value, Self::Error>
+                    where
+                        V: de::DeserializeSeed<'de>,
+                    {
+                        seed.deserialize(self.value.take().unwrap())
+                    }
+                }
+
+                let access = CompoundAccess {
+                    iter: map.into_iter(),
+                    value: None,
+                };
+                visitor.visit_map(access)
+            }
+            _ => Err(de::Error::custom("unsupported tag in this sketch")),
+        }
+    }
+
+    // For simplicity, forward to `deserialize_any`.
+    fn deserialize_i8<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+    where
+        V: Visitor<'de>,
+    {
+        match self {
+            Tag::Byte(b) => visitor.visit_i8(b),
+            other => Err(de::Error::invalid_type(
+                de::Unexpected::Other(&format!("{:?}", other)),
+                &"i8",
+            )),
+        }
+    }
+
+    fn deserialize_str<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+    where
+        V: Visitor<'de>,
+    {
+        match self {
+            Tag::String(s) => visitor.visit_str(&s),
+            other => Err(de::Error::invalid_type(
+                de::Unexpected::Other(&format!("{:?}", other)),
+                &"string",
+            )),
+        }
+    }
+
+    fn deserialize_string<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+    where
+        V: Visitor<'de>,
+    {
+        match self {
+            Tag::String(s) => visitor.visit_string(s),
+            other => Err(de::Error::invalid_type(
+                de::Unexpected::Other(&format!("{:?}", other)),
+                &"string",
+            )),
+        }
+    }
+
+    // You can leave the rest unimplemented for now, or forward them to `deserialize_any`.
+    forward_to_deserialize_any! {
+        bool i16 i32 i64 u8 u16 u32 u64 f32 f64 char bytes byte_buf option unit unit_struct
+        newtype_struct seq tuple tuple_struct map struct enum identifier ignored_any
     }
 }
 
