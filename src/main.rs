@@ -1,7 +1,9 @@
 use std::io::Result;
 
 use rust_nbt::{CompoundTag, StringTag};
+use serde::{Deserialize, Serialize};
 
+#[derive(Serialize, Deserialize)]
 struct Player {
     name: StringTag,
 }
