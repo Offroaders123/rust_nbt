@@ -1,7 +1,7 @@
+use flate2::Compression;
 use flate2::write::{
     DeflateDecoder, DeflateEncoder, GzDecoder, GzEncoder, ZlibDecoder, ZlibEncoder,
 };
-use flate2::Compression;
 use std::io::{Result, Write};
 
 // Enum for compression formats
