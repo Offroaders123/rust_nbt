@@ -4,14 +4,12 @@ use std::{error, fmt};
 use crate::Tag;
 
 #[derive(Debug)]
-pub enum DeserializeError {
-    Placeholder(String),
-}
+pub struct DeserializeError(String);
 
 impl fmt::Display for DeserializeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            DeserializeError::Placeholder(msg) => write!(f, "{}", msg),
+            DeserializeError(msg) => write!(f, "{}", msg),
         }
     }
 }
@@ -23,7 +21,7 @@ impl de::Error for DeserializeError {
     where
         T: fmt::Display,
     {
-        DeserializeError::Placeholder(msg.to_string())
+        DeserializeError(msg.to_string())
     }
 }
 
