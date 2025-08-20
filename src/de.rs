@@ -43,35 +43,53 @@ impl<'de> Deserializer<'de> for TagDeserializer {
     where
         V: serde::de::Visitor<'de>,
     {
-        todo!()
+        match self.input {
+            Tag::Byte(v) => match v {
+                0 | 1 => visitor.visit_bool(v != 0),
+                _ => Err(DeserializeError("Expected Boolean tag".to_string())),
+            },
+            _ => Err(DeserializeError("Expected Boolean tag".to_string())),
+        }
     }
 
     fn deserialize_i8<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        todo!()
+        match self.input {
+            Tag::Byte(v) => visitor.visit_i8(v),
+            _ => Err(DeserializeError("Expected Byte tag".to_string())),
+        }
     }
 
     fn deserialize_i16<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        todo!()
+        match self.input {
+            Tag::Short(v) => visitor.visit_i16(v),
+            _ => Err(DeserializeError("Expected Short tag".to_string())),
+        }
     }
 
     fn deserialize_i32<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        todo!()
+        match self.input {
+            Tag::Int(v) => visitor.visit_i32(v),
+            _ => Err(DeserializeError("Expected Int tag".to_string())),
+        }
     }
 
     fn deserialize_i64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        todo!()
+        match self.input {
+            Tag::Long(v) => visitor.visit_i64(v),
+            _ => Err(DeserializeError("Expected Long tag".to_string())),
+        }
     }
 
     fn deserialize_u8<V>(self, visitor: V) -> Result<V::Value, Self::Error>
@@ -106,14 +124,20 @@ impl<'de> Deserializer<'de> for TagDeserializer {
     where
         V: serde::de::Visitor<'de>,
     {
-        todo!()
+        match self.input {
+            Tag::Float(v) => visitor.visit_f32(v),
+            _ => Err(DeserializeError("Expected Float tag".to_string())),
+        }
     }
 
     fn deserialize_f64<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        todo!()
+        match self.input {
+            Tag::Double(v) => visitor.visit_f64(v),
+            _ => Err(DeserializeError("Expected Double tag".to_string())),
+        }
     }
 
     fn deserialize_char<V>(self, visitor: V) -> Result<V::Value, Self::Error>
@@ -134,7 +158,10 @@ impl<'de> Deserializer<'de> for TagDeserializer {
     where
         V: serde::de::Visitor<'de>,
     {
-        todo!()
+        match self.input {
+            Tag::String(v) => visitor.visit_string(v),
+            _ => Err(DeserializeError("Expected String tag".to_string())),
+        }
     }
 
     fn deserialize_bytes<V>(self, visitor: V) -> Result<V::Value, Self::Error>
