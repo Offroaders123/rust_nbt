@@ -107,7 +107,7 @@ impl Serializer for TagSerializer {
 
     fn serialize_some<T>(self, value: &T) -> Result<Self::Ok, Self::Error>
     where
-        T: ?Sized + serde::Serialize,
+        T: ?Sized + Serialize,
     {
         value.serialize(TagSerializer)
     }
@@ -137,7 +137,7 @@ impl Serializer for TagSerializer {
         value: &T,
     ) -> Result<Self::Ok, Self::Error>
     where
-        T: ?Sized + serde::Serialize,
+        T: ?Sized + Serialize,
     {
         value.serialize(TagSerializer)
     }
@@ -150,7 +150,7 @@ impl Serializer for TagSerializer {
         value: &T,
     ) -> Result<Self::Ok, Self::Error>
     where
-        T: ?Sized + serde::Serialize,
+        T: ?Sized + Serialize,
     {
         let mut map: CompoundTag = CompoundTag::new();
         map.insert(variant.to_string(), value.serialize(TagSerializer)?);
@@ -226,7 +226,7 @@ impl ser::SerializeSeq for SerializeList {
 
     fn serialize_element<T>(&mut self, value: &T) -> Result<(), Self::Error>
     where
-        T: ?Sized + serde::Serialize,
+        T: ?Sized + Serialize,
     {
         self.elements.push(value.serialize(TagSerializer)?);
         Ok(())
@@ -243,7 +243,7 @@ impl ser::SerializeTuple for SerializeList {
 
     fn serialize_element<T>(&mut self, value: &T) -> Result<(), Self::Error>
     where
-        T: ?Sized + serde::Serialize,
+        T: ?Sized + Serialize,
     {
         ser::SerializeSeq::serialize_element(self, value)
     }
@@ -259,7 +259,7 @@ impl ser::SerializeTupleStruct for SerializeList {
 
     fn serialize_field<T>(&mut self, value: &T) -> Result<(), Self::Error>
     where
-        T: ?Sized + serde::Serialize,
+        T: ?Sized + Serialize,
     {
         self.elements.push(value.serialize(TagSerializer)?);
         Ok(())
@@ -276,7 +276,7 @@ impl ser::SerializeTupleVariant for SerializeList {
 
     fn serialize_field<T>(&mut self, value: &T) -> Result<(), Self::Error>
     where
-        T: ?Sized + serde::Serialize,
+        T: ?Sized + Serialize,
     {
         self.elements.push(value.serialize(TagSerializer)?);
         Ok(())
@@ -297,7 +297,7 @@ impl ser::SerializeMap for SerializeCompound {
 
     fn serialize_key<T>(&mut self, key: &T) -> Result<(), Self::Error>
     where
-        T: ?Sized + serde::Serialize,
+        T: ?Sized + Serialize,
     {
         // store key temporarily? (NBT requires String keys)
         Err(SerializeError(
@@ -307,7 +307,7 @@ impl ser::SerializeMap for SerializeCompound {
 
     fn serialize_value<T>(&mut self, value: &T) -> Result<(), Self::Error>
     where
-        T: ?Sized + serde::Serialize,
+        T: ?Sized + Serialize,
     {
         Err(SerializeError("serialize_value not supported".into()))
     }
@@ -323,7 +323,7 @@ impl ser::SerializeStruct for SerializeCompound {
 
     fn serialize_field<T>(&mut self, key: &'static str, value: &T) -> Result<(), Self::Error>
     where
-        T: ?Sized + serde::Serialize,
+        T: ?Sized + Serialize,
     {
         self.fields
             .insert(key.to_string(), value.serialize(TagSerializer)?);
@@ -341,7 +341,7 @@ impl ser::SerializeStructVariant for SerializeCompound {
 
     fn serialize_field<T>(&mut self, key: &'static str, value: &T) -> Result<(), Self::Error>
     where
-        T: ?Sized + serde::Serialize,
+        T: ?Sized + Serialize,
     {
         self.fields
             .insert(key.to_string(), value.serialize(TagSerializer)?);
