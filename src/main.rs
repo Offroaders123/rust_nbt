@@ -1,9 +1,9 @@
-use std::io::Result;
+use std::io::{Error, ErrorKind, Result};
 
-use rust_nbt::{CompoundTag, StringTag};
+use rust_nbt::{StringTag, Tag, TagSerializer};
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 struct Player {
     name: StringTag,
 }
@@ -13,7 +13,12 @@ fn main() -> Result<()> {
         name: "Zesty Poopoo".into(),
     };
 
-    let player_nbt: CompoundTag = player.serialize();
+    let player_nbt: Tag = player
+        .serialize(TagSerializer)
+        .map_err(|e| Error::new(ErrorKind::InvalidData, format!("{e}")))?;
+
+    println!("{:#?}", player);
+    println!("{:#?}", player_nbt);
 
     Ok(())
 }
