@@ -8,12 +8,42 @@ use std::{error, fmt};
 use crate::Tag;
 
 #[derive(Debug)]
-pub struct DeserializeError(String);
+pub enum DeserializeError {
+    ExpectedByte,
+    ExpectedBoolean,
+    ExpectedShort,
+    ExpectedInt,
+    ExpectedLong,
+    ExpectedFloat,
+    ExpectedDouble,
+    ExpectedByteArray,
+    ExpectedString,
+    ExpectedList,
+    ExpectedCompound,
+    ExpectedIntArray,
+    ExpectedLongArray,
+    ValueMissing,
+    Custom(String),
+}
 
 impl fmt::Display for DeserializeError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            DeserializeError(msg) => write!(f, "{}", msg),
+            DeserializeError::ExpectedByte => write!(f, "Expected Byte tag"),
+            DeserializeError::ExpectedBoolean => write!(f, "Expected Boolean tag"),
+            DeserializeError::ExpectedShort => write!(f, "Expected Short tag"),
+            DeserializeError::ExpectedInt => write!(f, "Expected Int tag"),
+            DeserializeError::ExpectedLong => write!(f, "Expected Long tag"),
+            DeserializeError::ExpectedFloat => write!(f, "Expected Float tag"),
+            DeserializeError::ExpectedDouble => write!(f, "Expected Double tag"),
+            DeserializeError::ExpectedByteArray => write!(f, "Expected ByteArray tag"),
+            DeserializeError::ExpectedString => write!(f, "Expected String tag"),
+            DeserializeError::ExpectedList => write!(f, "Expected List tag"),
+            DeserializeError::ExpectedCompound => write!(f, "Expected Compound tag"),
+            DeserializeError::ExpectedIntArray => write!(f, "Expected IntArray tag"),
+            DeserializeError::ExpectedLongArray => write!(f, "Expected LongArray tag"),
+            DeserializeError::ValueMissing => write!(f, "Value Missing"),
+            DeserializeError::Custom(msg) => write!(f, "Other error: {msg}"),
         }
     }
 }
@@ -25,7 +55,7 @@ impl de::Error for DeserializeError {
     where
         T: fmt::Display,
     {
-        DeserializeError(msg.to_string())
+        DeserializeError::Custom(msg.to_string())
     }
 }
 
@@ -72,7 +102,7 @@ impl<'de, 'a> MapAccess<'de> for CompoundAccess<'a> {
     {
         match self.value.take() {
             Some(v) => seed.deserialize(TagDeserializer { input: v }),
-            None => Err(DeserializeError("Value missing".to_string())),
+            None => Err(DeserializeError::ValueMissing),
         }
     }
 }
@@ -94,9 +124,9 @@ impl<'de> Deserializer<'de> for TagDeserializer<'_> {
         match self.input {
             Tag::Byte(v) => match v {
                 0 | 1 => visitor.visit_bool(*v != 0),
-                _ => Err(DeserializeError("Expected Boolean tag".to_string())),
+                _ => Err(DeserializeError::ExpectedBoolean),
             },
-            _ => Err(DeserializeError("Expected Boolean tag".to_string())),
+            _ => Err(DeserializeError::ExpectedBoolean),
         }
     }
 
@@ -106,7 +136,7 @@ impl<'de> Deserializer<'de> for TagDeserializer<'_> {
     {
         match self.input {
             Tag::Byte(v) => visitor.visit_i8(*v),
-            _ => Err(DeserializeError("Expected Byte tag".to_string())),
+            _ => Err(DeserializeError::ExpectedByte),
         }
     }
 
@@ -116,7 +146,7 @@ impl<'de> Deserializer<'de> for TagDeserializer<'_> {
     {
         match self.input {
             Tag::Short(v) => visitor.visit_i16(*v),
-            _ => Err(DeserializeError("Expected Short tag".to_string())),
+            _ => Err(DeserializeError::ExpectedShort),
         }
     }
 
@@ -126,7 +156,7 @@ impl<'de> Deserializer<'de> for TagDeserializer<'_> {
     {
         match self.input {
             Tag::Int(v) => visitor.visit_i32(*v),
-            _ => Err(DeserializeError("Expected Int tag".to_string())),
+            _ => Err(DeserializeError::ExpectedInt),
         }
     }
 
@@ -136,7 +166,7 @@ impl<'de> Deserializer<'de> for TagDeserializer<'_> {
     {
         match self.input {
             Tag::Long(v) => visitor.visit_i64(*v),
-            _ => Err(DeserializeError("Expected Long tag".to_string())),
+            _ => Err(DeserializeError::ExpectedLong),
         }
     }
 
@@ -174,7 +204,7 @@ impl<'de> Deserializer<'de> for TagDeserializer<'_> {
     {
         match self.input {
             Tag::Float(v) => visitor.visit_f32(*v),
-            _ => Err(DeserializeError("Expected Float tag".to_string())),
+            _ => Err(DeserializeError::ExpectedFloat),
         }
     }
 
@@ -184,7 +214,7 @@ impl<'de> Deserializer<'de> for TagDeserializer<'_> {
     {
         match self.input {
             Tag::Double(v) => visitor.visit_f64(*v),
-            _ => Err(DeserializeError("Expected Double tag".to_string())),
+            _ => Err(DeserializeError::ExpectedDouble),
         }
     }
 
@@ -208,7 +238,7 @@ impl<'de> Deserializer<'de> for TagDeserializer<'_> {
     {
         match self.input {
             Tag::String(v) => visitor.visit_string(v.clone()),
-            _ => Err(DeserializeError("Expected String tag".to_string())),
+            _ => Err(DeserializeError::ExpectedString),
         }
     }
 
@@ -300,7 +330,7 @@ impl<'de> Deserializer<'de> for TagDeserializer<'_> {
                 };
                 visitor.visit_map(access)
             }
-            _ => Err(DeserializeError("Expected Compound tag".to_string())),
+            _ => Err(DeserializeError::ExpectedCompound),
         }
     }
 
