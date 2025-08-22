@@ -1,4 +1,7 @@
-use serde::{Deserializer, de};
+use serde::{
+    Deserializer,
+    de::{self, DeserializeOwned},
+};
 use std::{error, fmt};
 
 use crate::Tag;
@@ -27,6 +30,17 @@ impl de::Error for DeserializeError {
 
 pub struct TagDeserializer {
     input: Tag,
+}
+
+impl TagDeserializer {
+    pub fn new(input: Tag) -> Self {
+        TagDeserializer { input }
+    }
+}
+
+pub fn from_tag<T: DeserializeOwned>(tag: Tag) -> Result<T, DeserializeError> {
+    let deserializer: TagDeserializer = TagDeserializer::new(tag);
+    T::deserialize(deserializer)
 }
 
 impl<'de> Deserializer<'de> for TagDeserializer {

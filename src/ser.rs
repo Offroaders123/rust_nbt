@@ -1,6 +1,5 @@
-use std::{error, fmt};
-
 use serde::ser::{self, Serialize, Serializer};
+use std::{error, fmt};
 
 use crate::{ByteArrayTag, CompoundTag, ListTag, Tag};
 
@@ -27,6 +26,10 @@ impl ser::Error for SerializeError {
 }
 
 pub struct TagSerializer;
+
+pub fn to_tag<T: Serialize>(value: &T) -> Result<Tag, SerializeError> {
+    value.serialize(TagSerializer)
+}
 
 impl From<&[u8]> for ByteArrayTag {
     fn from(slice: &[u8]) -> Self {
