@@ -29,18 +29,18 @@ impl de::Error for DeserializeError {
     }
 }
 
-pub struct TagDeserializer {
-    input: Tag,
+pub struct TagDeserializer<'a> {
+    input: &'a Tag,
 }
 
-impl TagDeserializer {
-    pub fn new(input: Tag) -> Self {
+impl<'a> TagDeserializer<'a> {
+    pub fn new(input: &'a Tag) -> Self {
         TagDeserializer { input }
     }
 }
 
 pub fn from_tag<T: DeserializeOwned>(tag: Tag) -> Result<T, DeserializeError> {
-    let deserializer: TagDeserializer = TagDeserializer::new(tag);
+    let deserializer: TagDeserializer = TagDeserializer::new(&tag);
     T::deserialize(deserializer)
 }
 
@@ -77,7 +77,7 @@ impl<'de, 'a> MapAccess<'de> for CompoundAccess<'a> {
     }
 }
 
-impl<'de> Deserializer<'de> for TagDeserializer {
+impl<'de> Deserializer<'de> for TagDeserializer<'_> {
     type Error = DeserializeError;
 
     fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
@@ -93,7 +93,7 @@ impl<'de> Deserializer<'de> for TagDeserializer {
     {
         match self.input {
             Tag::Byte(v) => match v {
-                0 | 1 => visitor.visit_bool(v != 0),
+                0 | 1 => visitor.visit_bool(*v != 0),
                 _ => Err(DeserializeError("Expected Boolean tag".to_string())),
             },
             _ => Err(DeserializeError("Expected Boolean tag".to_string())),
@@ -105,7 +105,7 @@ impl<'de> Deserializer<'de> for TagDeserializer {
         V: serde::de::Visitor<'de>,
     {
         match self.input {
-            Tag::Byte(v) => visitor.visit_i8(v),
+            Tag::Byte(v) => visitor.visit_i8(*v),
             _ => Err(DeserializeError("Expected Byte tag".to_string())),
         }
     }
@@ -115,7 +115,7 @@ impl<'de> Deserializer<'de> for TagDeserializer {
         V: serde::de::Visitor<'de>,
     {
         match self.input {
-            Tag::Short(v) => visitor.visit_i16(v),
+            Tag::Short(v) => visitor.visit_i16(*v),
             _ => Err(DeserializeError("Expected Short tag".to_string())),
         }
     }
@@ -125,7 +125,7 @@ impl<'de> Deserializer<'de> for TagDeserializer {
         V: serde::de::Visitor<'de>,
     {
         match self.input {
-            Tag::Int(v) => visitor.visit_i32(v),
+            Tag::Int(v) => visitor.visit_i32(*v),
             _ => Err(DeserializeError("Expected Int tag".to_string())),
         }
     }
@@ -135,7 +135,7 @@ impl<'de> Deserializer<'de> for TagDeserializer {
         V: serde::de::Visitor<'de>,
     {
         match self.input {
-            Tag::Long(v) => visitor.visit_i64(v),
+            Tag::Long(v) => visitor.visit_i64(*v),
             _ => Err(DeserializeError("Expected Long tag".to_string())),
         }
     }
@@ -173,7 +173,7 @@ impl<'de> Deserializer<'de> for TagDeserializer {
         V: serde::de::Visitor<'de>,
     {
         match self.input {
-            Tag::Float(v) => visitor.visit_f32(v),
+            Tag::Float(v) => visitor.visit_f32(*v),
             _ => Err(DeserializeError("Expected Float tag".to_string())),
         }
     }
@@ -183,7 +183,7 @@ impl<'de> Deserializer<'de> for TagDeserializer {
         V: serde::de::Visitor<'de>,
     {
         match self.input {
-            Tag::Double(v) => visitor.visit_f64(v),
+            Tag::Double(v) => visitor.visit_f64(*v),
             _ => Err(DeserializeError("Expected Double tag".to_string())),
         }
     }
@@ -207,7 +207,7 @@ impl<'de> Deserializer<'de> for TagDeserializer {
         V: serde::de::Visitor<'de>,
     {
         match self.input {
-            Tag::String(v) => visitor.visit_string(v),
+            Tag::String(v) => visitor.visit_string(v.clone()),
             _ => Err(DeserializeError("Expected String tag".to_string())),
         }
     }
