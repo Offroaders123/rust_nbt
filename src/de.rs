@@ -1,6 +1,7 @@
+use indexmap::map;
 use serde::{
     Deserializer,
-    de::{self, DeserializeOwned},
+    de::{self, DeserializeOwned, IntoDeserializer, MapAccess},
 };
 use std::{error, fmt};
 
@@ -41,6 +42,39 @@ impl TagDeserializer {
 pub fn from_tag<T: DeserializeOwned>(tag: Tag) -> Result<T, DeserializeError> {
     let deserializer: TagDeserializer = TagDeserializer::new(tag);
     T::deserialize(deserializer)
+}
+
+struct CompoundAccess<'a> {
+    iter: map::Iter<'a, String, Tag>,
+    value: Option<&'a Tag>,
+}
+
+impl<'de, 'a> MapAccess<'de> for CompoundAccess<'a> {
+    type Error = DeserializeError;
+
+    fn next_key_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>, Self::Error>
+    where
+        K: de::DeserializeSeed<'de>,
+    {
+        if let Some((k, v)) = self.iter.next() {
+            self.value = Some(v);
+            let de: de::value::StrDeserializer<'_, DeserializeError> =
+                k.as_str().into_deserializer();
+            seed.deserialize(de).map(Some)
+        } else {
+            Ok(None)
+        }
+    }
+
+    fn next_value_seed<V>(&mut self, seed: V) -> Result<V::Value, Self::Error>
+    where
+        V: de::DeserializeSeed<'de>,
+    {
+        match self.value.take() {
+            Some(v) => seed.deserialize(TagDeserializer { input: v }),
+            None => Err(DeserializeError("Value missing".to_string())),
+        }
+    }
 }
 
 impl<'de> Deserializer<'de> for TagDeserializer {
@@ -258,7 +292,16 @@ impl<'de> Deserializer<'de> for TagDeserializer {
     where
         V: serde::de::Visitor<'de>,
     {
-        todo!()
+        match self.input {
+            Tag::Compound(v) => {
+                let access: CompoundAccess<'_> = CompoundAccess {
+                    iter: v.iter(),
+                    value: None,
+                };
+                visitor.visit_map(access)
+            }
+            _ => Err(DeserializeError("Expected Compound tag".to_string())),
+        }
     }
 
     fn deserialize_struct<V>(
@@ -270,7 +313,7 @@ impl<'de> Deserializer<'de> for TagDeserializer {
     where
         V: serde::de::Visitor<'de>,
     {
-        todo!()
+        self.deserialize_map(visitor)
     }
 
     fn deserialize_enum<V>(
