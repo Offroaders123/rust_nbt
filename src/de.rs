@@ -3,7 +3,11 @@ use serde::{
     Deserializer,
     de::{self, DeserializeOwned, IntoDeserializer, MapAccess},
 };
-use std::{error, fmt};
+use std::{
+    error,
+    fmt::{self, Debug},
+    io,
+};
 
 use crate::Tag;
 
@@ -56,6 +60,12 @@ impl de::Error for DeserializeError {
         T: fmt::Display,
     {
         DeserializeError::Custom(msg.to_string())
+    }
+}
+
+impl From<DeserializeError> for io::Error {
+    fn from(value: DeserializeError) -> Self {
+        io::Error::new(io::ErrorKind::InvalidData, format!("{:?}", value))
     }
 }
 

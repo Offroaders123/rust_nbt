@@ -1,5 +1,5 @@
 use serde::ser::{self, Serialize, Serializer};
-use std::{error, fmt};
+use std::{error, fmt, io};
 
 use crate::{ByteArrayTag, CompoundTag, ListTag, Tag};
 
@@ -22,6 +22,14 @@ impl ser::Error for SerializeError {
         T: fmt::Display,
     {
         SerializeError(msg.to_string())
+    }
+}
+
+impl From<SerializeError> for io::Error {
+    fn from(value: SerializeError) -> Self {
+        match value {
+            SerializeError(e) => io::Error::new(io::ErrorKind::InvalidData, format!("{:?}", e)),
+        }
     }
 }
 
