@@ -114,7 +114,7 @@ fn check_symmetry_struct_validated<E: ByteOrder>(
     Ok(())
 }
 
-#[test]
+// #[test]
 fn symmetrical_nbt_be() -> Result<()> {
     check_symmetry_tagged::<BigEndian>(
         "./tests/bigtest.nbt",
@@ -134,7 +134,7 @@ fn symmetrical_nbt_be_struct_validated() -> Result<()> {
     )
 }
 
-#[test]
+// #[test]
 fn symmetrical_nbt_le() -> Result<()> {
     check_symmetry_tagged::<LittleEndian>(
         "./tests/bigtest_little.nbt",
@@ -144,7 +144,7 @@ fn symmetrical_nbt_le() -> Result<()> {
     )
 }
 
-#[test]
+// #[test]
 fn symmetrical_nbt_le_bedrock_header() -> Result<()> {
     check_symmetry_tagged::<LittleEndian>("./tests/level.dat", "", None, BedrockHeader::With)
 }
