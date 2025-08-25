@@ -318,7 +318,8 @@ impl<'de> Deserializer<'de> for TagDeserializer<'_> {
     where
         V: serde::de::Visitor<'de>,
     {
-        todo!()
+        // Just delegate to the visitor to deserialize the inner value
+        visitor.visit_newtype_struct(self)
     }
 
     fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value, Self::Error>
