@@ -1,7 +1,7 @@
 use indexmap::map;
 use serde::{
     Deserializer,
-    de::{self, DeserializeOwned, IntoDeserializer, MapAccess},
+    de::{self, DeserializeOwned, IntoDeserializer, MapAccess, SeqAccess},
 };
 use std::{
     error,
@@ -84,6 +84,25 @@ pub fn from_tag<T: DeserializeOwned>(tag: Tag) -> Result<T, DeserializeError> {
     T::deserialize(deserializer)
 }
 
+struct ListAccess<'a> {
+    iter: std::slice::Iter<'a, Tag>,
+}
+
+impl<'de, 'a> SeqAccess<'de> for ListAccess<'a> {
+    type Error = DeserializeError;
+
+    fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>
+    where
+        T: de::DeserializeSeed<'de>,
+    {
+        if let Some(tag) = self.iter.next() {
+            let de: TagDeserializer<'_> = TagDeserializer::new(tag);
+            seed.deserialize(de).map(Some)
+        } else {
+            Ok(None)
+        }
+    }
+}
 struct CompoundAccess<'a> {
     iter: map::Iter<'a, String, Tag>,
     value: Option<&'a Tag>,
@@ -306,7 +325,16 @@ impl<'de> Deserializer<'de> for TagDeserializer<'_> {
     where
         V: serde::de::Visitor<'de>,
     {
-        todo!()
+        match self.input {
+            Tag::List(elements) => {
+                // Create a SeqAccess wrapper around the list
+                let access: ListAccess<'_> = ListAccess {
+                    iter: elements.iter(),
+                };
+                visitor.visit_seq(access)
+            }
+            _ => Err(DeserializeError::ExpectedList),
+        }
     }
 
     fn deserialize_tuple<V>(self, len: usize, visitor: V) -> Result<V::Value, Self::Error>
