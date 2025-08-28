@@ -318,6 +318,8 @@ impl<'de> Deserializer<'de> for TagDeserializer<'_> {
     where
         V: serde::de::Visitor<'de>,
     {
+        println!("this is newtype thing: {name}");
+
         // Just delegate to the visitor to deserialize the inner value
         visitor.visit_newtype_struct(self)
     }
@@ -333,6 +335,10 @@ impl<'de> Deserializer<'de> for TagDeserializer<'_> {
                     iter: elements.iter(),
                 };
                 visitor.visit_seq(access)
+            }
+            Tag::ByteArray(g) => {
+                println!("{:?}", g);
+                todo!()
             }
             _ => Err(DeserializeError::ExpectedList),
         }
