@@ -1,0 +1,16 @@
+diff --git a/dev/fd/63 b/dev/fd/62
+--- a/dev/fd/63
++++ b/dev/fd/62
+@@ -16,9 +16,9 @@ NBTData {
+     ],
+     byteTest: 127b,
+     doubleTest: 0.4931287132182315,
+-    byteArrayTest: Int8Array(5) [ 0, 62, 34, 16, 8 ],
+-    intArrayTest: Int32Array(4) [ 543, 123, 7567, 244 ],
+-    longArrayTest: BigInt64Array(4) [ 7676n, 53534n, 34534n, 345345345n ],
++    byteArrayTest: [ 0b, 62b, 34b, 16b, 8b ],
++    intArrayTest: [ 543, 123, 7567, 244 ],
++    longArrayTest: [ 7676n, 53534n, 34534n, 345345345n ],
+     escapedString: '"noice, I gotchya"',
+     escapeSequences: `\b\f\n\r\t"'\\`,
+     otherEscape: '"'

@@ -152,7 +152,23 @@ impl Serializer for TagSerializer {
     {
         println!("{name}");
 
-        value.serialize(TagSerializer)
+        let newtype: Tag = value.serialize(TagSerializer)?;
+
+        match newtype {
+            Tag::ByteArray(v) => {
+                println!("{:?}", v);
+                todo!()
+            }
+            Tag::IntArray(v) => {
+                println!("{:?}", v);
+                todo!()
+            }
+            Tag::LongArray(v) => {
+                println!("{:?}", v);
+                todo!()
+            }
+            _ => Ok(newtype),
+        }
     }
 
     fn serialize_newtype_variant<T>(

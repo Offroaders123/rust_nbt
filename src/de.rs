@@ -374,6 +374,15 @@ impl<'de> Deserializer<'de> for TagDeserializer<'_> {
     where
         V: serde::de::Visitor<'de>,
     {
+        visitor.visit_newtype_struct(self)
+    }
+
+    fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+    where
+        V: serde::de::Visitor<'de>,
+    {
+        println!("{:?}", self.input);
+
         match self.input {
             // NBT TAG_Byte_Array -> yield i8 items
             Tag::ByteArray(arr) => visitor.visit_seq(ByteArrayAccess { iter: arr.0.iter() }),
@@ -384,16 +393,6 @@ impl<'de> Deserializer<'de> for TagDeserializer<'_> {
             // NBT TAG_Long_Array -> yield i64 items
             Tag::LongArray(arr) => visitor.visit_seq(LongArrayAccess { iter: arr.0.iter() }),
 
-            // Just delegate to the visitor to deserialize the inner value
-            _ => visitor.visit_newtype_struct(self),
-        }
-    }
-
-    fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-    where
-        V: serde::de::Visitor<'de>,
-    {
-        match self.input {
             Tag::List(elements) => {
                 // Create a SeqAccess wrapper around the list
                 let access: ListAccess<'_> = ListAccess {
