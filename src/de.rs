@@ -26,7 +26,6 @@ pub enum DeserializeError {
     ExpectedCompound,
     ExpectedIntArray,
     ExpectedLongArray,
-    ExpectedArray,
     ValueMissing,
     Custom(String),
 }
@@ -47,7 +46,6 @@ impl fmt::Display for DeserializeError {
             DeserializeError::ExpectedCompound => write!(f, "Expected Compound tag"),
             DeserializeError::ExpectedIntArray => write!(f, "Expected IntArray tag"),
             DeserializeError::ExpectedLongArray => write!(f, "Expected LongArray tag"),
-            DeserializeError::ExpectedArray => write!(f, "Expected array-like tag"),
             DeserializeError::ValueMissing => write!(f, "Value Missing"),
             DeserializeError::Custom(msg) => write!(f, "Other error: {msg}"),
         }
@@ -86,25 +84,6 @@ pub fn from_tag<T: DeserializeOwned>(tag: Tag) -> Result<T, DeserializeError> {
     T::deserialize(deserializer)
 }
 
-struct ByteArrayAccess<'a> {
-    iter: std::slice::Iter<'a, i8>,
-}
-
-impl<'de, 'a> SeqAccess<'de> for ByteArrayAccess<'a> {
-    type Error = DeserializeError;
-    fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>
-    where
-        T: de::DeserializeSeed<'de>,
-    {
-        if let Some(&b) = self.iter.next() {
-            // feed a primitive deserializer for i8
-            seed.deserialize(b.into_deserializer()).map(Some)
-        } else {
-            Ok(None)
-        }
-    }
-}
-
 struct ListAccess<'a> {
     iter: std::slice::Iter<'a, Tag>,
 }
@@ -124,7 +103,6 @@ impl<'de, 'a> SeqAccess<'de> for ListAccess<'a> {
         }
     }
 }
-
 struct CompoundAccess<'a> {
     iter: map::Iter<'a, String, Tag>,
     value: Option<&'a Tag>,
@@ -154,42 +132,6 @@ impl<'de, 'a> MapAccess<'de> for CompoundAccess<'a> {
         match self.value.take() {
             Some(v) => seed.deserialize(TagDeserializer { input: v }),
             None => Err(DeserializeError::ValueMissing),
-        }
-    }
-}
-
-struct IntArrayAccess<'a> {
-    iter: std::slice::Iter<'a, i32>,
-}
-
-impl<'de, 'a> SeqAccess<'de> for IntArrayAccess<'a> {
-    type Error = DeserializeError;
-    fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>
-    where
-        T: de::DeserializeSeed<'de>,
-    {
-        if let Some(&x) = self.iter.next() {
-            seed.deserialize(x.into_deserializer()).map(Some)
-        } else {
-            Ok(None)
-        }
-    }
-}
-
-struct LongArrayAccess<'a> {
-    iter: std::slice::Iter<'a, i64>,
-}
-
-impl<'de, 'a> SeqAccess<'de> for LongArrayAccess<'a> {
-    type Error = DeserializeError;
-    fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>
-    where
-        T: de::DeserializeSeed<'de>,
-    {
-        if let Some(&x) = self.iter.next() {
-            seed.deserialize(x.into_deserializer()).map(Some)
-        } else {
-            Ok(None)
         }
     }
 }
@@ -385,19 +327,14 @@ impl<'de> Deserializer<'de> for TagDeserializer<'_> {
         V: serde::de::Visitor<'de>,
     {
         match self.input {
-            // NBT TAG_List -> iterate over &Tag and recurse
-            Tag::List(elems) => visitor.visit_seq(ListAccess { iter: elems.iter() }),
-
-            // NBT TAG_Byte_Array -> yield i8 items
-            Tag::ByteArray(arr) => visitor.visit_seq(ByteArrayAccess { iter: arr.0.iter() }),
-
-            // NBT TAG_Int_Array -> yield i32 items
-            Tag::IntArray(arr) => visitor.visit_seq(IntArrayAccess { iter: arr.0.iter() }),
-
-            // NBT TAG_Long_Array -> yield i64 items
-            Tag::LongArray(arr) => visitor.visit_seq(LongArrayAccess { iter: arr.0.iter() }),
-
-            _ => Err(DeserializeError::ExpectedArray),
+            Tag::List(elements) => {
+                // Create a SeqAccess wrapper around the list
+                let access: ListAccess<'_> = ListAccess {
+                    iter: elements.iter(),
+                };
+                visitor.visit_seq(access)
+            }
+            _ => Err(DeserializeError::ExpectedList),
         }
     }
 
