@@ -104,6 +104,48 @@ impl<'de, 'a> SeqAccess<'de> for ByteArrayAccess<'a> {
         }
     }
 }
+
+struct IntArrayAccess<'a> {
+    iter: std::slice::Iter<'a, i32>,
+}
+
+impl<'de, 'a> SeqAccess<'de> for IntArrayAccess<'a> {
+    type Error = DeserializeError;
+
+    fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>
+    where
+        T: de::DeserializeSeed<'de>,
+    {
+        if let Some(b) = self.iter.next() {
+            // Feed each i8 into Serde's machinery
+            let d: de::value::I32Deserializer<DeserializeError> = (*b).into_deserializer();
+            seed.deserialize(d).map(Some)
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+struct LongArrayAccess<'a> {
+    iter: std::slice::Iter<'a, i64>,
+}
+
+impl<'de, 'a> SeqAccess<'de> for LongArrayAccess<'a> {
+    type Error = DeserializeError;
+
+    fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>
+    where
+        T: de::DeserializeSeed<'de>,
+    {
+        if let Some(b) = self.iter.next() {
+            // Feed each i8 into Serde's machinery
+            let d: de::value::I64Deserializer<DeserializeError> = (*b).into_deserializer();
+            seed.deserialize(d).map(Some)
+        } else {
+            Ok(None)
+        }
+    }
+}
 struct ListAccess<'a> {
     iter: std::slice::Iter<'a, Tag>,
 }
@@ -346,6 +388,20 @@ impl<'de> Deserializer<'de> for TagDeserializer<'_> {
                 };
                 visitor.visit_seq(access)
             }
+            ("IntArray", Tag::IntArray(bytes)) => {
+                // Drive the visitor with a custom SeqAccess that yields i8s
+                let access: IntArrayAccess<'_> = IntArrayAccess {
+                    iter: bytes.0.iter(),
+                };
+                visitor.visit_seq(access)
+            }
+            ("LongArray", Tag::LongArray(bytes)) => {
+                // Drive the visitor with a custom SeqAccess that yields i8s
+                let access: LongArrayAccess<'_> = LongArrayAccess {
+                    iter: bytes.0.iter(),
+                };
+                visitor.visit_seq(access)
+            }
             _ => {
                 // Fallback: let the visitor handle this input directly
                 visitor.visit_newtype_struct(self)
@@ -375,6 +431,32 @@ impl<'de> Deserializer<'de> for TagDeserializer<'_> {
                 visitor.visit_seq(access)
 
                 // Or Option 2 (no ByteArrayAccess needed):
+                // use serde::de::value::SeqDeserializer;
+                // use serde::de::IntoDeserializer;
+                // let seq_de = SeqDeserializer::new(bytes.iter().cloned().map(|b| b.into_deserializer()));
+                // visitor.visit_seq(seq_de)
+            }
+            Tag::IntArray(bytes) => {
+                // Either Option 1: custom SeqAccess
+                let access = IntArrayAccess {
+                    iter: bytes.0.iter(),
+                };
+                visitor.visit_seq(access)
+
+                // Or Option 2 (no IntArrayAccess needed):
+                // use serde::de::value::SeqDeserializer;
+                // use serde::de::IntoDeserializer;
+                // let seq_de = SeqDeserializer::new(bytes.iter().cloned().map(|b| b.into_deserializer()));
+                // visitor.visit_seq(seq_de)
+            }
+            Tag::LongArray(bytes) => {
+                // Either Option 1: custom SeqAccess
+                let access = LongArrayAccess {
+                    iter: bytes.0.iter(),
+                };
+                visitor.visit_seq(access)
+
+                // Or Option 2 (no LongArrayAccess needed):
                 // use serde::de::value::SeqDeserializer;
                 // use serde::de::IntoDeserializer;
                 // let seq_de = SeqDeserializer::new(bytes.iter().cloned().map(|b| b.into_deserializer()));

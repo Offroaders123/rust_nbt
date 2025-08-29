@@ -12,9 +12,9 @@ pub struct ByteArrayTag(pub Vec<i8>);
 pub type StringTag = String;
 pub type ListTag<T> = Vec<T>;
 pub type CompoundTag = IndexMap<String, Tag>;
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
 pub struct IntArrayTag(pub Vec<i32>);
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
 pub struct LongArrayTag(pub Vec<i64>);
 
 impl<'de> Deserialize<'de> for ByteArrayTag {
@@ -25,6 +25,28 @@ impl<'de> Deserialize<'de> for ByteArrayTag {
         // Just delegate to Vec<i8>
         let v: Vec<i8> = Vec::<i8>::deserialize(deserializer)?;
         Ok(ByteArrayTag(v))
+    }
+}
+
+impl<'de> Deserialize<'de> for IntArrayTag {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        // Just delegate to Vec<i32>
+        let v: Vec<i32> = Vec::<i32>::deserialize(deserializer)?;
+        Ok(IntArrayTag(v))
+    }
+}
+
+impl<'de> Deserialize<'de> for LongArrayTag {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        // Just delegate to Vec<i64>
+        let v: Vec<i64> = Vec::<i64>::deserialize(deserializer)?;
+        Ok(LongArrayTag(v))
     }
 }
 
