@@ -84,25 +84,6 @@ pub fn from_tag<T: DeserializeOwned>(tag: Tag) -> Result<T, DeserializeError> {
     T::deserialize(deserializer)
 }
 
-struct ByteArrayAccess<'a> {
-    iter: std::slice::Iter<'a, i8>,
-}
-
-impl<'de, 'a> SeqAccess<'de> for ByteArrayAccess<'a> {
-    type Error = DeserializeError;
-    fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>
-    where
-        T: de::DeserializeSeed<'de>,
-    {
-        if let Some(&b) = self.iter.next() {
-            // feed a primitive deserializer for i8
-            seed.deserialize(b.into_deserializer()).map(Some)
-        } else {
-            Ok(None)
-        }
-    }
-}
-
 struct ListAccess<'a> {
     iter: std::slice::Iter<'a, Tag>,
 }
@@ -122,7 +103,6 @@ impl<'de, 'a> SeqAccess<'de> for ListAccess<'a> {
         }
     }
 }
-
 struct CompoundAccess<'a> {
     iter: map::Iter<'a, String, Tag>,
     value: Option<&'a Tag>,
@@ -152,42 +132,6 @@ impl<'de, 'a> MapAccess<'de> for CompoundAccess<'a> {
         match self.value.take() {
             Some(v) => seed.deserialize(TagDeserializer { input: v }),
             None => Err(DeserializeError::ValueMissing),
-        }
-    }
-}
-
-struct IntArrayAccess<'a> {
-    iter: std::slice::Iter<'a, i32>,
-}
-
-impl<'de, 'a> SeqAccess<'de> for IntArrayAccess<'a> {
-    type Error = DeserializeError;
-    fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>
-    where
-        T: de::DeserializeSeed<'de>,
-    {
-        if let Some(&x) = self.iter.next() {
-            seed.deserialize(x.into_deserializer()).map(Some)
-        } else {
-            Ok(None)
-        }
-    }
-}
-
-struct LongArrayAccess<'a> {
-    iter: std::slice::Iter<'a, i64>,
-}
-
-impl<'de, 'a> SeqAccess<'de> for LongArrayAccess<'a> {
-    type Error = DeserializeError;
-    fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>
-    where
-        T: de::DeserializeSeed<'de>,
-    {
-        if let Some(&x) = self.iter.next() {
-            seed.deserialize(x.into_deserializer()).map(Some)
-        } else {
-            Ok(None)
         }
     }
 }
@@ -374,19 +318,10 @@ impl<'de> Deserializer<'de> for TagDeserializer<'_> {
     where
         V: serde::de::Visitor<'de>,
     {
-        match self.input {
-            // NBT TAG_Byte_Array -> yield i8 items
-            Tag::ByteArray(arr) => visitor.visit_seq(ByteArrayAccess { iter: arr.0.iter() }),
+        println!("this is newtype thing: {name}");
 
-            // NBT TAG_Int_Array -> yield i32 items
-            Tag::IntArray(arr) => visitor.visit_seq(IntArrayAccess { iter: arr.0.iter() }),
-
-            // NBT TAG_Long_Array -> yield i64 items
-            Tag::LongArray(arr) => visitor.visit_seq(LongArrayAccess { iter: arr.0.iter() }),
-
-            // Just delegate to the visitor to deserialize the inner value
-            _ => visitor.visit_newtype_struct(self),
-        }
+        // Just delegate to the visitor to deserialize the inner value
+        visitor.visit_newtype_struct(self)
     }
 
     fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value, Self::Error>
@@ -400,6 +335,10 @@ impl<'de> Deserializer<'de> for TagDeserializer<'_> {
                     iter: elements.iter(),
                 };
                 visitor.visit_seq(access)
+            }
+            Tag::ByteArray(g) => {
+                println!("{:?}", g);
+                todo!()
             }
             _ => Err(DeserializeError::ExpectedList),
         }
