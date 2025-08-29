@@ -150,8 +150,6 @@ impl Serializer for TagSerializer {
     where
         T: ?Sized + Serialize,
     {
-        println!("{name}");
-
         value.serialize(TagSerializer)
     }
 
