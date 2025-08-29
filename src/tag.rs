@@ -8,16 +8,13 @@ pub type LongTag = i64;
 pub type FloatTag = f32;
 pub type DoubleTag = f64;
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(transparent)]
 pub struct ByteArrayTag(pub Vec<i8>);
 pub type StringTag = String;
 pub type ListTag<T> = Vec<T>;
 pub type CompoundTag = IndexMap<String, Tag>;
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(transparent)]
 pub struct IntArrayTag(pub Vec<i32>);
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(transparent)]
 pub struct LongArrayTag(pub Vec<i64>);
 
 /// Represents an NBT tag type.
