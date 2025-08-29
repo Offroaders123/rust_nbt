@@ -1,7 +1,7 @@
 use indexmap::map;
 use serde::{
     Deserializer,
-    de::{self, DeserializeOwned, IntoDeserializer, MapAccess, SeqAccess},
+    de::{self, DeserializeOwned, IntoDeserializer, MapAccess, SeqAccess, value::SeqDeserializer},
 };
 use std::{
     error,
@@ -84,6 +84,26 @@ pub fn from_tag<T: DeserializeOwned>(tag: Tag) -> Result<T, DeserializeError> {
     T::deserialize(deserializer)
 }
 
+struct ByteArrayAccess<'a> {
+    iter: std::slice::Iter<'a, i8>,
+}
+
+impl<'de, 'a> SeqAccess<'de> for ByteArrayAccess<'a> {
+    type Error = DeserializeError;
+
+    fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>
+    where
+        T: de::DeserializeSeed<'de>,
+    {
+        if let Some(b) = self.iter.next() {
+            // Feed each i8 into Serde's machinery
+            let d: de::value::I8Deserializer<DeserializeError> = (*b).into_deserializer();
+            seed.deserialize(d).map(Some)
+        } else {
+            Ok(None)
+        }
+    }
+}
 struct ListAccess<'a> {
     iter: std::slice::Iter<'a, Tag>,
 }
@@ -318,14 +338,27 @@ impl<'de> Deserializer<'de> for TagDeserializer<'_> {
     where
         V: serde::de::Visitor<'de>,
     {
-        // Just delegate to the visitor to deserialize the inner value
-        visitor.visit_newtype_struct(self)
+        match (name, self.input) {
+            ("ByteArray", Tag::ByteArray(bytes)) => {
+                // Drive the visitor with a custom SeqAccess that yields i8s
+                let access: ByteArrayAccess<'_> = ByteArrayAccess {
+                    iter: bytes.0.iter(),
+                };
+                visitor.visit_seq(access)
+            }
+            _ => {
+                // Fallback: let the visitor handle this input directly
+                visitor.visit_newtype_struct(self)
+            }
+        }
     }
 
     fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
+        println!("{:?}", self.input);
+
         match self.input {
             Tag::List(elements) => {
                 // Create a SeqAccess wrapper around the list
@@ -333,6 +366,19 @@ impl<'de> Deserializer<'de> for TagDeserializer<'_> {
                     iter: elements.iter(),
                 };
                 visitor.visit_seq(access)
+            }
+            Tag::ByteArray(bytes) => {
+                // Either Option 1: custom SeqAccess
+                let access = ByteArrayAccess {
+                    iter: bytes.0.iter(),
+                };
+                visitor.visit_seq(access)
+
+                // Or Option 2 (no ByteArrayAccess needed):
+                // use serde::de::value::SeqDeserializer;
+                // use serde::de::IntoDeserializer;
+                // let seq_de = SeqDeserializer::new(bytes.iter().cloned().map(|b| b.into_deserializer()));
+                // visitor.visit_seq(seq_de)
             }
             _ => Err(DeserializeError::ExpectedList),
         }
