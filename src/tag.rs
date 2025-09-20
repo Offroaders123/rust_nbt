@@ -1,5 +1,5 @@
 use indexmap::IndexMap;
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 pub type ByteTag = i8;
 pub type ShortTag = i16;
@@ -7,7 +7,7 @@ pub type IntTag = i32;
 pub type LongTag = i64;
 pub type FloatTag = f32;
 pub type DoubleTag = f64;
-#[derive(Debug, Serialize)]
+#[derive(Debug)]
 pub struct ByteArrayTag(pub Vec<i8>);
 pub type StringTag = String;
 pub type ListTag<T> = Vec<T>;
@@ -16,6 +16,17 @@ pub type CompoundTag = IndexMap<String, Tag>;
 pub struct IntArrayTag(pub Vec<i32>);
 #[derive(Debug, Serialize)]
 pub struct LongArrayTag(pub Vec<i64>);
+
+impl Serialize for ByteArrayTag {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let v: &[i8] = *&self.0.as_slice();
+        let uv: Vec<u8> = v.iter().map(|b| *b as u8).collect();
+        serializer.serialize_bytes(&uv)
+    }
+}
 
 impl<'de> Deserialize<'de> for ByteArrayTag {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
