@@ -419,7 +419,7 @@ impl<'de> Deserializer<'de> for TagDeserializer<'_> {
             Tag::List(elements) => {
                 // Create a SeqAccess wrapper around the list
                 let access: ListAccess<'_> = ListAccess {
-                    iter: elements.iter(),
+                    iter: elements.0.iter(),
                 };
                 visitor.visit_seq(access)
             }

@@ -170,7 +170,7 @@ impl Serializer for TagSerializer {
 
     fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
         Ok(SerializeList {
-            elements: ListTag::new(),
+            elements: Vec::new(),
         })
     }
 
@@ -194,7 +194,7 @@ impl Serializer for TagSerializer {
         len: usize,
     ) -> Result<Self::SerializeTupleVariant, Self::Error> {
         Ok(SerializeList {
-            elements: ListTag::with_capacity(len),
+            elements: Vec::with_capacity(len),
         })
     }
 
@@ -244,7 +244,7 @@ impl ser::SerializeSeq for SerializeList {
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        Ok(Tag::List(self.elements))
+        Ok(Tag::List(ListTag(self.elements)))
     }
 }
 
@@ -277,7 +277,7 @@ impl ser::SerializeTupleStruct for SerializeList {
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        Ok(Tag::List(self.elements))
+        Ok(Tag::List(ListTag(self.elements)))
     }
 }
 
@@ -294,7 +294,7 @@ impl ser::SerializeTupleVariant for SerializeList {
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        Ok(Tag::List(self.elements))
+        Ok(Tag::List(ListTag(self.elements)))
     }
 }
 

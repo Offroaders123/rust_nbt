@@ -129,9 +129,9 @@ fn read_string<E: ByteOrder>(reader: &mut impl Read) -> Result<StringTag, ReadEr
 fn read_list<E: ByteOrder>(reader: &mut impl Read) -> Result<ListTag<Tag>, ReadError> {
     let tag_id: TagId = read_tag_id(reader)?;
     let length: usize = read_int::<E>(reader)? as usize;
-    let mut value: ListTag<Tag> = Vec::with_capacity(length);
+    let mut value: ListTag<Tag> = ListTag(Vec::with_capacity(length));
     for _ in 0..length {
-        value.push(read_tag::<E>(reader, &tag_id)?);
+        value.0.push(read_tag::<E>(reader, &tag_id)?);
     }
     Ok(value)
 }

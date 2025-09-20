@@ -165,13 +165,13 @@ fn write_list<E: ByteOrder>(
     writer: &mut impl Write,
     value: &ListTag<Tag>,
 ) -> Result<(), WriteError> {
-    if let Some(first_entry) = value.first() {
+    if let Some(first_entry) = value.0.first() {
         let tag_id: TagId = first_entry.id();
-        let length: IntTag = value.len() as i32;
+        let length: IntTag = value.0.len() as i32;
         write_tag_id(writer, tag_id)?;
         write_int::<E>(writer, length)?;
-        for entry in value {
-            write_tag::<E>(writer, entry)?;
+        for entry in &value.0 {
+            write_tag::<E>(writer, &entry)?;
         }
     } else {
         write_tag_id(writer, TagId::End)?; // Empty list type.
