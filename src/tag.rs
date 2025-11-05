@@ -10,8 +10,7 @@ pub type DoubleTag = f64;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ByteArrayTag(pub Vec<i8>);
 pub type StringTag = String;
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ListTag<T>(pub Vec<T>);
+pub type ListTag<T> = Vec<T>;
 pub type CompoundTag = IndexMap<String, Tag>;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct IntArrayTag(pub Vec<i32>);

@@ -2,7 +2,7 @@ use byteorder::{BigEndian, ByteOrder, LittleEndian};
 use rust_nbt::{BedrockHeader, CompressionFormat, Tag, decompress, read_root, write_root};
 use std::{fs::read, io::Result};
 
-fn check_symmetry_tagged<E: ByteOrder>(
+fn check_symmetry<E: ByteOrder>(
     file: &str,
     root_name: &str,
     compression: Option<CompressionFormat>,
@@ -32,7 +32,7 @@ fn check_symmetry_tagged<E: ByteOrder>(
 
 #[test]
 fn symmetrical_nbt_be() -> Result<()> {
-    check_symmetry_tagged::<BigEndian>(
+    check_symmetry::<BigEndian>(
         "./tests/bigtest.nbt",
         "Level",
         Some(CompressionFormat::Gzip),
@@ -42,7 +42,7 @@ fn symmetrical_nbt_be() -> Result<()> {
 
 #[test]
 fn symmetrical_nbt_le() -> Result<()> {
-    check_symmetry_tagged::<LittleEndian>(
+    check_symmetry::<LittleEndian>(
         "./tests/bigtest_little.nbt",
         "Level",
         Some(CompressionFormat::Gzip),
@@ -52,5 +52,5 @@ fn symmetrical_nbt_le() -> Result<()> {
 
 #[test]
 fn symmetrical_nbt_le_bedrock_header() -> Result<()> {
-    check_symmetry_tagged::<LittleEndian>("./tests/level.dat", "", None, BedrockHeader::With)
+    check_symmetry::<LittleEndian>("./tests/level.dat", "", None, BedrockHeader::With)
 }
