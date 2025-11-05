@@ -1,14 +1,10 @@
 mod compression;
-mod de;
 mod format;
 mod read;
-mod ser;
 mod tag;
 mod write;
 pub use compression::*;
-pub use de::*;
 pub use format::*;
 pub use read::*;
-pub use ser::*;
 pub use tag::*;
 pub use write::*;

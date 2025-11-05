@@ -1,5 +1,5 @@
 use indexmap::IndexMap;
-use serde::{Deserialize, Deserializer, Serialize, Serializer, ser::SerializeSeq};
+use serde::{Deserialize, Serialize};
 
 pub type ByteTag = i8;
 pub type ShortTag = i16;
@@ -7,74 +7,16 @@ pub type IntTag = i32;
 pub type LongTag = i64;
 pub type FloatTag = f32;
 pub type DoubleTag = f64;
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ByteArrayTag(pub Vec<i8>);
 pub type StringTag = String;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ListTag<T>(pub Vec<T>);
 pub type CompoundTag = IndexMap<String, Tag>;
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct IntArrayTag(pub Vec<i32>);
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct LongArrayTag(pub Vec<i64>);
-
-impl Serialize for ByteArrayTag {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let v: &[i8] = *&self.0.as_slice();
-        let uv: Vec<u8> = v.iter().map(|b| *b as u8).collect();
-        serializer.serialize_bytes(&uv)
-    }
-}
-
-impl<'de> Deserialize<'de> for ByteArrayTag {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        // Just delegate to Vec<i8>
-        let v: Vec<i8> = Vec::<i8>::deserialize(deserializer)?;
-        Ok(ByteArrayTag(v))
-    }
-}
-
-impl Serialize for IntArrayTag {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut seq: <S as Serializer>::SerializeSeq =
-            serializer.serialize_seq(Some(self.0.len()))?;
-        for val in &self.0 {
-            seq.serialize_element(val)?;
-        }
-        seq.end()
-    }
-}
-
-impl<'de> Deserialize<'de> for IntArrayTag {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        // Just delegate to Vec<i32>
-        let v: Vec<i32> = Vec::<i32>::deserialize(deserializer)?;
-        Ok(IntArrayTag(v))
-    }
-}
-
-impl<'de> Deserialize<'de> for LongArrayTag {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        // Just delegate to Vec<i64>
-        let v: Vec<i64> = Vec::<i64>::deserialize(deserializer)?;
-        Ok(LongArrayTag(v))
-    }
-}
 
 /// Represents an NBT tag type.
 #[repr(u8)]
