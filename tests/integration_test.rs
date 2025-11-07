@@ -51,6 +51,11 @@ fn symmetrical_nbt_le() -> Result<()> {
 }
 
 #[test]
+fn symmetrical_nbt_varint() -> Result<()> {
+    check_symmetry_tagged::<LittleEndian>("bigtest-varint.nbt", "", None, BedrockHeader::Without)
+}
+
+#[test]
 fn symmetrical_nbt_le_bedrock_header() -> Result<()> {
     check_symmetry_tagged::<LittleEndian>("level.dat", "", None, BedrockHeader::With)
 }
