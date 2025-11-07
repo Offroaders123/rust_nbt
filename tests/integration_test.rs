@@ -10,7 +10,7 @@ fn check_symmetry_tagged<E: ByteOrder>(
 ) -> Result<()> {
     println!("{}", file);
 
-    let raw: Vec<u8> = read(file).unwrap();
+    let raw: Vec<u8> = read(format!("./tests/fixtures/{file}")).unwrap();
     let nbt_bytes: Vec<u8> = match compression {
         Some(compression) => decompress(&raw, compression)?,
         None => raw,
@@ -33,7 +33,7 @@ fn check_symmetry_tagged<E: ByteOrder>(
 #[test]
 fn symmetrical_nbt_be() -> Result<()> {
     check_symmetry_tagged::<BigEndian>(
-        "./tests/fixtures/bigtest.nbt",
+        "bigtest.nbt",
         "Level",
         Some(CompressionFormat::Gzip),
         BedrockHeader::Without,
@@ -43,7 +43,7 @@ fn symmetrical_nbt_be() -> Result<()> {
 #[test]
 fn symmetrical_nbt_le() -> Result<()> {
     check_symmetry_tagged::<LittleEndian>(
-        "./tests/fixtures/bigtest_little.nbt",
+        "bigtest_little.nbt",
         "Level",
         Some(CompressionFormat::Gzip),
         BedrockHeader::Without,
@@ -52,5 +52,5 @@ fn symmetrical_nbt_le() -> Result<()> {
 
 #[test]
 fn symmetrical_nbt_le_bedrock_header() -> Result<()> {
-    check_symmetry_tagged::<LittleEndian>("./tests/fixtures/level.dat", "", None, BedrockHeader::With)
+    check_symmetry_tagged::<LittleEndian>("level.dat", "", None, BedrockHeader::With)
 }
