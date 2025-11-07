@@ -33,7 +33,7 @@ fn check_symmetry_tagged<E: ByteOrder>(
 #[test]
 fn symmetrical_nbt_be() -> Result<()> {
     check_symmetry_tagged::<BigEndian>(
-        "./tests/bigtest.nbt",
+        "./tests/fixtures/bigtest.nbt",
         "Level",
         Some(CompressionFormat::Gzip),
         BedrockHeader::Without,
@@ -43,7 +43,7 @@ fn symmetrical_nbt_be() -> Result<()> {
 #[test]
 fn symmetrical_nbt_le() -> Result<()> {
     check_symmetry_tagged::<LittleEndian>(
-        "./tests/bigtest_little.nbt",
+        "./tests/fixtures/bigtest_little.nbt",
         "Level",
         Some(CompressionFormat::Gzip),
         BedrockHeader::Without,
@@ -52,5 +52,5 @@ fn symmetrical_nbt_le() -> Result<()> {
 
 #[test]
 fn symmetrical_nbt_le_bedrock_header() -> Result<()> {
-    check_symmetry_tagged::<LittleEndian>("./tests/level.dat", "", None, BedrockHeader::With)
+    check_symmetry_tagged::<LittleEndian>("./tests/fixtures/level.dat", "", None, BedrockHeader::With)
 }
