@@ -10,7 +10,7 @@ fn check_symmetry_tagged<E: ByteOrder>(
 ) -> Result<()> {
     println!("{}", file);
 
-    let raw: Vec<u8> = read(format!("./tests/fixtures/{file}")).unwrap();
+    let raw: Vec<u8> = read(format!("tests/fixtures/{file}")).unwrap();
     let nbt_bytes: Vec<u8> = match compression {
         Some(compression) => decompress(&raw, compression)?,
         None => raw,
