@@ -1,10 +1,10 @@
-use byteorder::{BigEndian, ByteOrder, LittleEndian};
-use rust_nbt::{BedrockHeader, CompressionFormat, Tag, decompress, read_root, write_root};
+use rust_nbt::{BedrockHeader, CompressionFormat, Endian, Tag, decompress, read_root, write_root};
 use std::{fs::read, io::Result};
 
-fn check_symmetry_tagged<E: ByteOrder>(
+fn check_symmetry_tagged(
     file: &str,
     root_name: &str,
+    endian: &Endian,
     compression: Option<CompressionFormat>,
     header: BedrockHeader,
 ) -> Result<()> {
@@ -18,10 +18,10 @@ fn check_symmetry_tagged<E: ByteOrder>(
     println!("{:?}", &nbt_bytes[0..10]);
 
     // Example usage: Pass an NBT file's binary contents as a Vec<u8>
-    let nbt_data: Tag = read_root::<E>(&nbt_bytes, &header)?;
+    let nbt_data: Tag = read_root(&nbt_bytes, endian, &header)?;
     println!("{:?}", nbt_data);
 
-    let recompile: Vec<u8> = write_root::<E>(&nbt_data, root_name, &header)?;
+    let recompile: Vec<u8> = write_root(&nbt_data, root_name, endian, &header)?;
     println!("{:?}", &recompile[0..10]);
 
     assert_eq!(&nbt_bytes, &recompile);
@@ -32,9 +32,10 @@ fn check_symmetry_tagged<E: ByteOrder>(
 
 #[test]
 fn symmetrical_nbt_be() -> Result<()> {
-    check_symmetry_tagged::<BigEndian>(
+    check_symmetry_tagged(
         "bigtest.nbt",
         "Level",
+        &Endian::Big,
         Some(CompressionFormat::Gzip),
         BedrockHeader::Without,
     )
@@ -42,9 +43,10 @@ fn symmetrical_nbt_be() -> Result<()> {
 
 #[test]
 fn symmetrical_nbt_le() -> Result<()> {
-    check_symmetry_tagged::<LittleEndian>(
+    check_symmetry_tagged(
         "bigtest_little.nbt",
         "Level",
+        &Endian::Little,
         Some(CompressionFormat::Gzip),
         BedrockHeader::Without,
     )
@@ -52,10 +54,16 @@ fn symmetrical_nbt_le() -> Result<()> {
 
 #[test]
 fn symmetrical_nbt_varint() -> Result<()> {
-    check_symmetry_tagged::<LittleEndian>("bigtest-varint.nbt", "", None, BedrockHeader::Without)
+    check_symmetry_tagged(
+        "bigtest-varint.nbt",
+        "",
+        &Endian::Little,
+        None,
+        BedrockHeader::Without,
+    )
 }
 
 #[test]
 fn symmetrical_nbt_le_bedrock_header() -> Result<()> {
-    check_symmetry_tagged::<LittleEndian>("level.dat", "", None, BedrockHeader::With)
+    check_symmetry_tagged("level.dat", "", &Endian::Little, None, BedrockHeader::With)
 }

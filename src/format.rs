@@ -1,4 +1,4 @@
-enum Endian {
+pub enum Endian {
     Big,
     Little,
     LittleVarInt,
