@@ -138,9 +138,25 @@ fn read_var_int(reader: &mut impl Read) -> Result<IntTag, ReadError> {
 }
 
 fn read_var_int_zig_zag(reader: &mut impl Read) -> Result<IntTag, ReadError> {
-    let raw: i32 = read_var_int(reader)? as i32;
-    let value: i32 = (raw >> 1) ^ -(raw & 1);
-    Ok(value)
+    let mut result: i32 = 0;
+    let mut shift: i32 = 0;
+
+    loop {
+        let byte: u8 = reader.read_u8()?;
+        result |= ((byte & 0x7F) as i32) << shift;
+
+        if (byte & 0x80) == 0 {
+            break;
+        }
+
+        shift += 7;
+        if shift > 63 {
+            return Err(ReadError::VarIntRange);
+        }
+    }
+
+    let zigzag: i32 = ((((result << 63) >> 63) ^ result) >> 1) ^ (result & (1 << 63));
+    Ok(zigzag)
 }
 
 fn read_long(reader: &mut impl Read, endian: &Endian) -> Result<LongTag, ReadError> {
