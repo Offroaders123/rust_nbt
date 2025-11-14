@@ -66,7 +66,7 @@ fn symmetrical_nbt_varint() -> Result<()> {
 #[test]
 fn symmetrical_nbt_varint_test() -> Result<()> {
     check_symmetry_tagged(
-        "varint-test.nbt",
+        "unit-varint.nbt",
         "",
         &Endian::LittleVarInt,
         None,
