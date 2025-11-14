@@ -259,7 +259,11 @@ fn read_int_array(reader: &mut impl Read, endian: &Endian) -> Result<IntArrayTag
     };
     let mut value: IntArrayTag = IntArrayTag(Vec::with_capacity(length));
     for _ in 0..length {
-        value.0.push(read_int(reader, endian)?);
+        let entry: i32 = match endian {
+            Endian::LittleVarInt => read_int(reader, &Endian::Little)?,
+            _ => read_int(reader, endian)?,
+        };
+        value.0.push(entry);
     }
     Ok(value)
 }
@@ -271,7 +275,11 @@ fn read_long_array(reader: &mut impl Read, endian: &Endian) -> Result<LongArrayT
     };
     let mut value: LongArrayTag = LongArrayTag(Vec::with_capacity(length));
     for _ in 0..length {
-        value.0.push(read_long(reader, endian)?);
+        let entry: i64 = match endian {
+            Endian::LittleVarInt => read_long(reader, &Endian::Little)?,
+            _ => read_long(reader, endian)?,
+        };
+        value.0.push(entry);
     }
     Ok(value)
 }
