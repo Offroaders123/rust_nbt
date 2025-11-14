@@ -9,6 +9,7 @@ use std::io::{self, Cursor, Read};
 pub enum ReadError {
     IoError(io::Error),
     TagIDError(TagIDError),
+    VarIntTooBig,
 }
 
 impl From<io::Error> for ReadError {
@@ -30,6 +31,7 @@ impl From<ReadError> for io::Error {
             ReadError::TagIDError(e) => {
                 io::Error::new(io::ErrorKind::InvalidData, format!("{:?}", e))
             }
+            ReadError::VarIntTooBig => io::Error::new(io::ErrorKind::InvalidData, "VarInt too big"),
         }
     }
 }
@@ -89,16 +91,14 @@ fn read_byte(reader: &mut impl Read) -> Result<ByteTag, ReadError> {
 fn read_unsigned_short(reader: &mut impl Read, endian: &Endian) -> Result<u16, ReadError> {
     match endian {
         Endian::Big => Ok(reader.read_u16::<BigEndian>()?),
-        Endian::Little => Ok(reader.read_u16::<LittleEndian>()?),
-        Endian::LittleVarInt => Ok(reader.read_u16::<LittleEndian>()?),
+        Endian::Little | Endian::LittleVarInt => Ok(reader.read_u16::<LittleEndian>()?),
     }
 }
 
 fn read_short(reader: &mut impl Read, endian: &Endian) -> Result<ShortTag, ReadError> {
     match endian {
         Endian::Big => Ok(reader.read_i16::<BigEndian>()?),
-        Endian::Little => Ok(reader.read_i16::<LittleEndian>()?),
-        Endian::LittleVarInt => Ok(reader.read_i16::<LittleEndian>()?),
+        Endian::Little | Endian::LittleVarInt => Ok(reader.read_i16::<LittleEndian>()?),
     }
 }
 
@@ -106,36 +106,86 @@ fn read_int(reader: &mut impl Read, endian: &Endian) -> Result<IntTag, ReadError
     match endian {
         Endian::Big => Ok(reader.read_i32::<BigEndian>()?),
         Endian::Little => Ok(reader.read_i32::<LittleEndian>()?),
-        Endian::LittleVarInt => Ok(reader.read_i32::<LittleEndian>()?),
+        Endian::LittleVarInt => read_var_int_zig_zag(reader),
     }
+}
+
+fn read_var_int(reader: &mut impl Read) -> Result<IntTag, ReadError> {
+    let mut value: i32 = 0;
+    let mut shift: i32 = 0;
+
+    loop {
+        let byte: u8 = reader.read_u8()?;
+        value |= ((byte & 0x7F) as i32) << shift;
+
+        if (byte & 0x80) == 0 {
+            break;
+        }
+
+        shift += 7;
+        if shift >= 32 {
+            return Err(ReadError::VarIntTooBig);
+        }
+    }
+
+    Ok(value)
+}
+
+fn read_var_int_zig_zag(reader: &mut impl Read) -> Result<IntTag, ReadError> {
+    let raw: i32 = read_var_int(reader)? as i32;
+    let value: i32 = (raw >> 1) ^ -(raw & 1);
+    Ok(value)
 }
 
 fn read_long(reader: &mut impl Read, endian: &Endian) -> Result<LongTag, ReadError> {
     match endian {
         Endian::Big => Ok(reader.read_i64::<BigEndian>()?),
         Endian::Little => Ok(reader.read_i64::<LittleEndian>()?),
-        Endian::LittleVarInt => Ok(reader.read_i64::<LittleEndian>()?),
+        Endian::LittleVarInt => read_var_long_zig_zag(reader),
     }
+}
+
+fn read_var_long_zig_zag(reader: &mut impl Read) -> Result<LongTag, ReadError> {
+    let mut result: u64 = 0;
+    let mut shift: i32 = 0;
+
+    loop {
+        let byte: u8 = reader.read_u8()?;
+        result |= ((byte & 0x7F) as u64) << shift;
+
+        if (byte & 0x80) == 0 {
+            break;
+        }
+
+        shift += 7;
+        if shift > 63 {
+            return Err(ReadError::VarIntTooBig);
+        }
+    }
+
+    let zigzag: i64 = ((result >> 1) as i64) ^ (-((result & 1) as i64));
+    Ok(zigzag)
 }
 
 fn read_float(reader: &mut impl Read, endian: &Endian) -> Result<FloatTag, ReadError> {
     match endian {
         Endian::Big => Ok(reader.read_f32::<BigEndian>()?),
-        Endian::Little => Ok(reader.read_f32::<LittleEndian>()?),
-        Endian::LittleVarInt => Ok(reader.read_f32::<LittleEndian>()?),
+        Endian::Little | Endian::LittleVarInt => Ok(reader.read_f32::<LittleEndian>()?),
     }
 }
 
 fn read_double(reader: &mut impl Read, endian: &Endian) -> Result<DoubleTag, ReadError> {
     match endian {
         Endian::Big => Ok(reader.read_f64::<BigEndian>()?),
-        Endian::Little => Ok(reader.read_f64::<LittleEndian>()?),
-        Endian::LittleVarInt => Ok(reader.read_f64::<LittleEndian>()?),
+        Endian::Little | Endian::LittleVarInt => Ok(reader.read_f64::<LittleEndian>()?),
     }
 }
 
 fn read_byte_array(reader: &mut impl Read, endian: &Endian) -> Result<ByteArrayTag, ReadError> {
-    let length: usize = read_int(reader, endian)? as usize;
+    let length: usize = match endian {
+        Endian::LittleVarInt => read_var_int_zig_zag(reader)? as usize,
+        _ => read_int(reader, endian)? as usize,
+    };
     let mut value: ByteArrayTag = ByteArrayTag(Vec::with_capacity(length));
     for _ in 0..length {
         value.0.push(read_byte(reader)?);
@@ -144,7 +194,10 @@ fn read_byte_array(reader: &mut impl Read, endian: &Endian) -> Result<ByteArrayT
 }
 
 fn read_string(reader: &mut impl Read, endian: &Endian) -> Result<StringTag, ReadError> {
-    let length: usize = read_unsigned_short(reader, endian)? as usize;
+    let length: usize = match endian {
+        Endian::LittleVarInt => read_var_int(reader)? as usize,
+        _ => read_unsigned_short(reader, endian)? as usize,
+    };
     let mut buffer: Vec<u8> = vec![0; length];
     reader.read_exact(&mut buffer)?;
     Ok(String::from_utf8(buffer).unwrap())
@@ -152,7 +205,10 @@ fn read_string(reader: &mut impl Read, endian: &Endian) -> Result<StringTag, Rea
 
 fn read_list(reader: &mut impl Read, endian: &Endian) -> Result<ListTag<Tag>, ReadError> {
     let tag_id: TagId = read_tag_id(reader)?;
-    let length: usize = read_int(reader, endian)? as usize;
+    let length: usize = match endian {
+        Endian::LittleVarInt => read_var_int_zig_zag(reader)? as usize,
+        _ => read_int(reader, endian)? as usize,
+    };
     let mut value: ListTag<Tag> = Vec::with_capacity(length);
     for _ in 0..length {
         value.push(read_tag(reader, endian, &tag_id)?);
@@ -175,7 +231,10 @@ fn read_compound(reader: &mut impl Read, endian: &Endian) -> Result<CompoundTag,
 }
 
 fn read_int_array(reader: &mut impl Read, endian: &Endian) -> Result<IntArrayTag, ReadError> {
-    let length: usize = read_int(reader, endian)? as usize;
+    let length: usize = match endian {
+        Endian::LittleVarInt => read_var_int_zig_zag(reader)? as usize,
+        _ => read_int(reader, endian)? as usize,
+    };
     let mut value: IntArrayTag = IntArrayTag(Vec::with_capacity(length));
     for _ in 0..length {
         value.0.push(read_int(reader, endian)?);
@@ -184,7 +243,10 @@ fn read_int_array(reader: &mut impl Read, endian: &Endian) -> Result<IntArrayTag
 }
 
 fn read_long_array(reader: &mut impl Read, endian: &Endian) -> Result<LongArrayTag, ReadError> {
-    let length: usize = read_int(reader, endian)? as usize;
+    let length: usize = match endian {
+        Endian::LittleVarInt => read_var_int_zig_zag(reader)? as usize,
+        _ => read_int(reader, endian)? as usize,
+    };
     let mut value: LongArrayTag = LongArrayTag(Vec::with_capacity(length));
     for _ in 0..length {
         value.0.push(read_long(reader, endian)?);

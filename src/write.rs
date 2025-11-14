@@ -123,8 +123,7 @@ fn write_unsigned_short(
 ) -> Result<(), WriteError> {
     match endian {
         Endian::Big => Ok(writer.write_u16::<BigEndian>(value)?),
-        Endian::Little => Ok(writer.write_u16::<LittleEndian>(value)?),
-        Endian::LittleVarInt => Ok(writer.write_u16::<LittleEndian>(value)?),
+        Endian::Little | Endian::LittleVarInt => Ok(writer.write_u16::<LittleEndian>(value)?),
     }
 }
 
@@ -135,8 +134,7 @@ fn write_short(
 ) -> Result<(), WriteError> {
     match endian {
         Endian::Big => Ok(writer.write_i16::<BigEndian>(value)?),
-        Endian::Little => Ok(writer.write_i16::<LittleEndian>(value)?),
-        Endian::LittleVarInt => Ok(writer.write_i16::<LittleEndian>(value)?),
+        Endian::Little | Endian::LittleVarInt => Ok(writer.write_i16::<LittleEndian>(value)?),
     }
 }
 
@@ -144,16 +142,63 @@ fn write_int(writer: &mut impl Write, endian: &Endian, value: IntTag) -> Result<
     match endian {
         Endian::Big => Ok(writer.write_i32::<BigEndian>(value)?),
         Endian::Little => Ok(writer.write_i32::<LittleEndian>(value)?),
-        Endian::LittleVarInt => Ok(writer.write_i32::<LittleEndian>(value)?),
+        Endian::LittleVarInt => write_var_int_zig_zag(writer, value),
     }
+}
+
+fn write_var_int(writer: &mut impl Write, mut value: i32) -> Result<(), WriteError> {
+    loop {
+        let mut byte: u8 = (value & 0x7F) as u8;
+        value >>= 7;
+
+        if value != 0 {
+            byte |= 0x80;
+        }
+
+        writer.write_u8(byte)?;
+
+        if value == 0 {
+            break;
+        }
+    }
+
+    Ok(())
+}
+
+fn write_var_int_zig_zag(writer: &mut impl Write, value: i32) -> Result<(), WriteError> {
+    // ZigZag encode
+    let mut v = ((value << 1) ^ (value >> 31)) as u32;
+
+    while (v & !0x7F) != 0 {
+        let byte = ((v & 0x7F) | 0x80) as u8;
+        writer.write_u8(byte)?;
+        v >>= 7;
+    }
+
+    writer.write_u8(v as u8)?;
+    Ok(())
 }
 
 fn write_long(writer: &mut impl Write, endian: &Endian, value: LongTag) -> Result<(), WriteError> {
     match endian {
         Endian::Big => Ok(writer.write_i64::<BigEndian>(value)?),
         Endian::Little => Ok(writer.write_i64::<LittleEndian>(value)?),
-        Endian::LittleVarInt => Ok(writer.write_i64::<LittleEndian>(value)?),
+        Endian::LittleVarInt => write_var_long_zig_zag(writer, value),
     }
+}
+
+fn write_var_long_zig_zag(writer: &mut impl Write, value: i64) -> Result<(), WriteError> {
+    // ZigZag encode
+    let mut v: u64 = ((value << 1) ^ (value >> 63)) as u64;
+
+    while v > 0x7F {
+        let byte = ((v & 0x7F) as u8) | 0x80;
+        writer.write_u8(byte)?;
+        v >>= 7;
+    }
+
+    writer.write_u8(v as u8)?;
+    Ok(())
 }
 
 fn write_float(
@@ -163,8 +208,7 @@ fn write_float(
 ) -> Result<(), WriteError> {
     match endian {
         Endian::Big => Ok(writer.write_f32::<BigEndian>(value)?),
-        Endian::Little => Ok(writer.write_f32::<LittleEndian>(value)?),
-        Endian::LittleVarInt => Ok(writer.write_f32::<LittleEndian>(value)?),
+        Endian::Little | Endian::LittleVarInt => Ok(writer.write_f32::<LittleEndian>(value)?),
     }
 }
 
@@ -175,8 +219,7 @@ fn write_double(
 ) -> Result<(), WriteError> {
     match endian {
         Endian::Big => Ok(writer.write_f64::<BigEndian>(value)?),
-        Endian::Little => Ok(writer.write_f64::<LittleEndian>(value)?),
-        Endian::LittleVarInt => Ok(writer.write_f64::<LittleEndian>(value)?),
+        Endian::Little | Endian::LittleVarInt => Ok(writer.write_f64::<LittleEndian>(value)?),
     }
 }
 
@@ -186,7 +229,10 @@ fn write_byte_array(
     value: &ByteArrayTag,
 ) -> Result<(), WriteError> {
     let length: IntTag = value.0.len() as i32;
-    write_int(writer, endian, length)?;
+    match endian {
+        Endian::LittleVarInt => write_var_int_zig_zag(writer, length)?,
+        _ => write_int(writer, endian, length)?,
+    }
     for entry in &value.0 {
         write_byte(writer, *entry)?;
     }
@@ -196,7 +242,10 @@ fn write_byte_array(
 fn write_string(writer: &mut impl Write, endian: &Endian, value: &str) -> Result<(), WriteError> {
     let entry: &[u8] = value.as_bytes();
     let length: u16 = value.len() as u16;
-    write_unsigned_short(writer, endian, length)?;
+    match endian {
+        Endian::LittleVarInt => write_var_int(writer, length.into())?,
+        _ => write_unsigned_short(writer, endian, length)?,
+    }
     Ok(writer.write_all(entry)?)
 }
 
@@ -209,7 +258,10 @@ fn write_list(
         let tag_id: TagId = first_entry.id();
         let length: IntTag = value.len() as i32;
         write_tag_id(writer, tag_id)?;
-        write_int(writer, endian, length)?;
+        match endian {
+            Endian::LittleVarInt => write_var_int_zig_zag(writer, length)?,
+            _ => write_int(writer, endian, length)?,
+        }
         for entry in value {
             write_tag(writer, endian, entry)?;
         }
@@ -240,7 +292,10 @@ fn write_int_array(
     value: &IntArrayTag,
 ) -> Result<(), WriteError> {
     let length: IntTag = value.0.len() as i32;
-    write_int(writer, endian, length)?;
+    match endian {
+        Endian::LittleVarInt => write_var_int_zig_zag(writer, length)?,
+        _ => write_int(writer, endian, length)?,
+    }
     for entry in &value.0 {
         write_int(writer, endian, *entry)?;
     }
@@ -253,7 +308,10 @@ fn write_long_array(
     value: &LongArrayTag,
 ) -> Result<(), WriteError> {
     let length: IntTag = value.0.len() as i32;
-    write_int(writer, endian, length)?;
+    match endian {
+        Endian::LittleVarInt => write_var_int_zig_zag(writer, length)?,
+        _ => write_int(writer, endian, length)?,
+    }
     for entry in &value.0 {
         write_long(writer, endian, *entry)?;
     }
