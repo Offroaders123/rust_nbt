@@ -73,7 +73,7 @@ pub enum TagId {
 #[derive(Debug, Serialize, Deserialize)]
 pub enum TagIDError {
     UnexpectedEnd,
-    UnknownType,
+    UnknownType(u8),
 }
 
 impl TryFrom<u8> for TagId {
@@ -94,7 +94,7 @@ impl TryFrom<u8> for TagId {
             10 => Ok(TagId::Compound),
             11 => Ok(TagId::IntArray),
             12 => Ok(TagId::LongArray),
-            _ => Err(TagIDError::UnknownType),
+            _ => Err(TagIDError::UnknownType(value)),
         }
     }
 }
