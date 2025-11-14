@@ -155,7 +155,7 @@ fn read_var_int_zig_zag(reader: &mut impl Read) -> Result<IntTag, ReadError> {
         }
     }
 
-    let zigzag: i32 = ((((result << 63) >> 63) ^ result) >> 1) ^ (result & (1 << 63));
+    let zigzag: i32 = ((((result << 31) >> 31) ^ result) >> 1) ^ (result & (1 << 31));
     Ok(zigzag)
 }
 
