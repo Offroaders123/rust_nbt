@@ -297,7 +297,10 @@ fn write_int_array(
         _ => write_int(writer, endian, length)?,
     }
     for entry in &value.0 {
-        write_int(writer, endian, *entry)?;
+        match endian {
+            Endian::LittleVarInt => write_int(writer, &Endian::Little, *entry)?,
+            _ => write_int(writer, endian, *entry)?,
+        }
     }
     Ok(())
 }
@@ -313,7 +316,10 @@ fn write_long_array(
         _ => write_int(writer, endian, length)?,
     }
     for entry in &value.0 {
-        write_long(writer, endian, *entry)?;
+        match endian {
+            Endian::LittleVarInt => write_long(writer, &Endian::Little, *entry)?,
+            _ => write_long(writer, endian, *entry)?,
+        }
     }
     Ok(())
 }
