@@ -9,7 +9,8 @@ use std::io::{self, Cursor, Read};
 pub enum ReadError {
     IoError(io::Error),
     TagIDError(TagIDError),
-    VarIntTooBig,
+    VarIntRange,
+    VarLongRange,
 }
 
 impl From<io::Error> for ReadError {
@@ -31,7 +32,12 @@ impl From<ReadError> for io::Error {
             ReadError::TagIDError(e) => {
                 io::Error::new(io::ErrorKind::InvalidData, format!("{:?}", e))
             }
-            ReadError::VarIntTooBig => io::Error::new(io::ErrorKind::InvalidData, "VarInt too big"),
+            ReadError::VarIntRange => {
+                io::Error::new(io::ErrorKind::InvalidData, "VarInt size is too large")
+            }
+            ReadError::VarLongRange => {
+                io::Error::new(io::ErrorKind::InvalidData, "VarLong size is too large")
+            }
         }
     }
 }
@@ -124,7 +130,7 @@ fn read_var_int(reader: &mut impl Read) -> Result<IntTag, ReadError> {
 
         shift += 7;
         if shift >= 32 {
-            return Err(ReadError::VarIntTooBig);
+            return Err(ReadError::VarIntRange);
         }
     }
 
@@ -159,7 +165,7 @@ fn read_var_long_zig_zag(reader: &mut impl Read) -> Result<LongTag, ReadError> {
 
         shift += 7;
         if shift > 63 {
-            return Err(ReadError::VarIntTooBig);
+            return Err(ReadError::VarLongRange);
         }
     }
 
