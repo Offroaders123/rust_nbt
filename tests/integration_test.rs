@@ -55,6 +55,17 @@ fn symmetrical_nbt_le() -> Result<()> {
 #[test]
 fn symmetrical_nbt_varint() -> Result<()> {
     check_symmetry_tagged(
+        "bigtest-varint.nbt",
+        "",
+        &Endian::LittleVarInt,
+        None,
+        BedrockHeader::Without,
+    )
+}
+
+#[test]
+fn symmetrical_nbt_varint_test() -> Result<()> {
+    check_symmetry_tagged(
         "varint-test.nbt",
         "",
         &Endian::LittleVarInt,
